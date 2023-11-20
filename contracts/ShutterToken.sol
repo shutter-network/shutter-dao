@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.8.0 <0.9.0;
 
-import {ERC20, ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import "./TokenRescuer.sol";
 
 /// @title Shutter Token contract
 /// Copied from Safe Token - author Richard Meissner - rmeissner
-contract ShutterToken is ERC20, Pausable, Ownable, TokenRescuer {
+contract ShutterToken is ERC20Votes, Pausable, Ownable {
     /// @dev Will mint 1 billion tokens to the owner and pause the contract
-    constructor(address owner) ERC20("Shutter Token", "SHU") TokenRescuer(owner) {
+    constructor(address owner) ERC20("Shutter Token", "SHU") EIP712("ShutterToken", "1.0.0") Ownable(owner) {
         // Transfer ownership immediately
         _transferOwnership(owner);
         // "ether" is used here to get 18 decimals
@@ -25,7 +26,7 @@ contract ShutterToken is ERC20, Pausable, Ownable, TokenRescuer {
     /// @dev See {Pausable-_unpause}
     /// Requirements: caller must be the owner
     function unpause() public virtual onlyOwner {
-        require(paused(), "SafeToken: token is not paused");
+        require(paused(), "ShutterToken: token is not paused");
         _unpause();
     }
 
@@ -38,12 +39,13 @@ contract ShutterToken is ERC20, Pausable, Ownable, TokenRescuer {
         address from,
         address to,
         uint256 amount
-    ) internal virtual override {
+    ) internal virtual override(ERC20Votes) {
         super._update(from, to, amount);
 
-        require(to != address(this), "SafeToken: cannot transfer tokens to token contract");
+        require(to != address(this), "ShutterToken: cannot transfer tokens to token contract");
         // Token transfers are only possible if the contract is not paused
         // OR if triggered by the owner of the contract
-        require(!paused() || owner() == _msgSender(), "SafeToken: token transfer while paused");
+        require(!paused() || owner() == _msgSender(), "ShutterToken: token transfer while paused");
     }
+
 }
