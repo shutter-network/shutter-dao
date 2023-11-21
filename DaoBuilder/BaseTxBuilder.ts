@@ -18,7 +18,7 @@ export class BaseTxBuilder {
   readonly predictedSafeContract: GnosisSafe;
   readonly zodiacModuleProxyFactoryContract: IModuleProxyFractory;
   readonly fractalAzoriusMasterCopyContract: IAzorius;
-  readonly ShutterTokenContract: ShutterToken;
+  readonly shutterTokenContract: ShutterToken;
   readonly fractalRegistryContract: FractalRegistry;
   readonly keyValuePairsContract: KeyValuePairs;
   readonly linearVotingMasterCopyContract: LinearERC20Voting;
@@ -26,7 +26,7 @@ export class BaseTxBuilder {
 
   constructor(
     predictedSafeContract: GnosisSafe,
-    ShutterTokenContract: ShutterToken,
+    shutterTokenContract: ShutterToken,
     multiSendContract: Contract,
     zodiacModuleProxyFactoryContract: IModuleProxyFractory,
     fractalAzoriusMasterCopyContract: IAzorius,
@@ -36,7 +36,7 @@ export class BaseTxBuilder {
     shutterDAOConfig: ShutterDAOConfig
   ) {
     this.predictedSafeContract = predictedSafeContract;
-    this.ShutterTokenContract = ShutterTokenContract;
+    this.shutterTokenContract = shutterTokenContract;
     this.multiSendContract = multiSendContract;
     this.zodiacModuleProxyFactoryContract = zodiacModuleProxyFactoryContract;
     this.fractalAzoriusMasterCopyContract = fractalAzoriusMasterCopyContract;

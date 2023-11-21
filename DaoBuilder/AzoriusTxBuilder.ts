@@ -190,6 +190,7 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
       ],
       [
         this.predictedSafeContract.address, // owner
+        this.shutterTokenContract.address, // token
         "0x0000000000000000000000000000000000000001", // Azorius module
         this.shutterDAOConfig.votingPeriod, // voting period (blocks)
         this.shutterDAOConfig.proposalRequiredWeight, // proposer weight, how much is needed to create a proposal.

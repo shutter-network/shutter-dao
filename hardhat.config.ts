@@ -39,6 +39,18 @@ const config: HardhatUserConfig = {
         ? [process.env.GOERLI_DEPLOYER_PRIVATE_KEY]
         : [],
     },
+    hardhat: {
+      chainId: 5,
+      forking: {
+        url: `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
+        httpHeaders: {
+          Origin: 'localhost:3000', // infura allowlists requests by origin
+        },
+      },
+      accounts: {
+        count: 2,
+      },
+    },
   },
   gasReporter: {
     enabled: true,
