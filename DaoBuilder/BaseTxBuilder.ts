@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { buildContractCall, encodeMultiSend } from "./utils";
-import { constants, Contract } from "ethers";
+import { buildContractCall, encodeMultiSend } from './utils';
+import { constants, Contract } from 'ethers';
 import {
   KeyValuePairs,
   FractalRegistry,
@@ -8,9 +8,9 @@ import {
   GnosisSafe,
   ModuleProxyFactory as IModuleProxyFractory,
   LinearERC20Voting,
-} from "@fractal-framework/fractal-contracts";
-import { ShutterDAOConfig, MetaTransaction, SafeTransaction } from "./types";
-import { ShutterToken } from "../typechain";
+} from '@fractal-framework/fractal-contracts';
+import { ShutterDAOConfig, MetaTransaction, SafeTransaction } from './types';
+import { ShutterToken } from '../typechain';
 
 export class BaseTxBuilder {
   // set base contracts and master copies that are used in the tx
@@ -18,7 +18,7 @@ export class BaseTxBuilder {
   readonly predictedSafeContract: GnosisSafe;
   readonly zodiacModuleProxyFactoryContract: IModuleProxyFractory;
   readonly fractalAzoriusMasterCopyContract: IAzorius;
-  readonly ShutterTokenContract: ShutterToken;
+  readonly shutterTokenContract: ShutterToken;
   readonly fractalRegistryContract: FractalRegistry;
   readonly keyValuePairsContract: KeyValuePairs;
   readonly linearVotingMasterCopyContract: LinearERC20Voting;
@@ -26,17 +26,17 @@ export class BaseTxBuilder {
 
   constructor(
     predictedSafeContract: GnosisSafe,
-    ShutterTokenContract: ShutterToken,
+    shutterTokenContract: ShutterToken,
     multiSendContract: Contract,
     zodiacModuleProxyFactoryContract: IModuleProxyFractory,
     fractalAzoriusMasterCopyContract: IAzorius,
     fractalRegistryContract: FractalRegistry,
     keyValuePairsContract: KeyValuePairs,
     linearVotingMasterCopyContract: LinearERC20Voting,
-    shutterDAOConfig: ShutterDAOConfig
+    shutterDAOConfig: ShutterDAOConfig,
   ) {
     this.predictedSafeContract = predictedSafeContract;
-    this.ShutterTokenContract = ShutterTokenContract;
+    this.shutterTokenContract = shutterTokenContract;
     this.multiSendContract = multiSendContract;
     this.zodiacModuleProxyFactoryContract = zodiacModuleProxyFactoryContract;
     this.fractalAzoriusMasterCopyContract = fractalAzoriusMasterCopyContract;
@@ -49,47 +49,42 @@ export class BaseTxBuilder {
   buildUpdateDAONameTx(): SafeTransaction {
     return buildContractCall(
       this.fractalRegistryContract,
-      "updateDAOName",
+      'updateDAOName',
       [this.shutterDAOConfig.name],
       0,
-      false
+      false,
     );
   }
 
   buildUpdateDAOSnapshotURLTx(): SafeTransaction {
     return buildContractCall(
       this.keyValuePairsContract,
-      "updateValues",
-      [["snapshotURL"], [this.shutterDAOConfig.snapshotURL]], // @todo update
+      'updateValues',
+      [['snapshotURL'], [this.shutterDAOConfig.snapshotURL]], // @todo update
       0,
-      false
+      false,
     );
   }
 
-  buildExecInternalSafeTx(
-    signatures: string,
-    internalTxs: MetaTransaction[]
-  ): SafeTransaction {
+  buildExecInternalSafeTx(signatures: string, internalTxs: MetaTransaction[]): SafeTransaction {
     const safeInternalTx = encodeMultiSend(internalTxs);
     return buildContractCall(
       this.predictedSafeContract,
-      "execTransaction",
+      'execTransaction',
       [
         this.multiSendContract.address, // to
-        "0", // value
-        this.multiSendContract.interface.encodeFunctionData("multiSend", [
-          safeInternalTx,
-        ]), // calldata
-        "1", // operation
-        "0", // tx gas
-        "0", // base gas
-        "0", // gas price
+        '0', // value
+        this.multiSendContract.interface.encodeFunctionData('multiSend', [safeInternalTx]), // calldata
+        '1', // operation
+        '0', // tx gas
+        '0', // base gas
+        '0', // gas price
         constants.AddressZero, // gas token
         constants.AddressZero, // receiver
         signatures, // sigs
       ],
       0,
-      false
+      false,
     );
   }
 }

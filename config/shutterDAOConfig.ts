@@ -1,4 +1,4 @@
-import { ShutterDAOConfig } from "../DaoBuilder/types";
+import { ShutterDAOConfig } from '../DaoBuilder/types';
 
 // @note 1 block = ~15 seconds
 // @note 1 day = 5760 blocks
@@ -9,15 +9,15 @@ const NOW = Math.floor(Date.now() / 1000);
 
 export const shutterDAOConfig: ShutterDAOConfig = {
   // name of the DAO
-  name: "Shutter DAO",
+  name: 'Shutter DAO',
   // Lock Release | start timestamp of the release schedule
   lockStart: NOW, // (seconds)
   // Lock Release | duration of the release schedule in seconds
   lockDuration: ONE_YEAR, // (seconds)
   // Snapshot | url of the snapshot page
-  snapshotURL: "https://snapshot.org/#/shutterprotodao.eth",
+  snapshotURL: 'https://snapshot.org/#/shutterprotodao.eth',
   // ShutterToken | initial supply of the token
-  initialSupply: "100000000", // (+18 decimals)
+  initialSupply: '100000000', // (+18 decimals)
   // Linear Strategy |  Length of time that voting occurs
   votingPeriod: 5, // (blocks)
   // Linear Strategy | Length of time between when a proposal is passed and when it can be actually be executed.  For the top level Decent DAO we may want to have this be 0
