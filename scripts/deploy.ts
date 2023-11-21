@@ -1,19 +1,17 @@
-import { logShutterDaoTxt, logEthereumLogo } from "./graphics/graphics";
-import { ethers } from "hardhat";
-import { getMasterCopies, getSafeData } from "../DaoBuilder/daoUtils";
-import { AzoriusTxBuilder } from "../DaoBuilder/AzoriusTxBuilder";
-import { shutterDAOConfig } from "../config/shutterDAOConfig";
-import { encodeMultiSend } from "../DaoBuilder/utils";
-import { utils } from "ethers";
+import { logShutterDaoTxt, logEthereumLogo } from './graphics/graphics';
+import { ethers } from 'hardhat';
+import { getMasterCopies, getSafeData } from '../DaoBuilder/daoUtils';
+import { AzoriusTxBuilder } from '../DaoBuilder/AzoriusTxBuilder';
+import { shutterDAOConfig } from '../config/shutterDAOConfig';
+import { encodeMultiSend } from '../DaoBuilder/utils';
+import { utils } from 'ethers';
 
 async function createDAO() {
   logShutterDaoTxt();
 
   const [deployer] = await ethers.getSigners();
-  const shutterTokenFactory = await ethers.getContractFactory("ShutterToken");
-  const shutterTokenContract = await shutterTokenFactory.deploy(
-    await deployer.getAddress()
-  );
+  const shutterTokenFactory = await ethers.getContractFactory('ShutterToken');
+  const shutterTokenContract = await shutterTokenFactory.deploy(await deployer.getAddress());
 
   //
   // Get predicted safe deployment address + transaction
@@ -27,9 +25,7 @@ async function createDAO() {
     multisendContract,
   } = await getMasterCopies();
 
-  const { predictedSafeContract, createSafeTx } = await getSafeData(
-    multisendContract
-  );
+  const { predictedSafeContract, createSafeTx } = await getSafeData(multisendContract);
 
   //
   // Build Token Voting Contract
@@ -44,7 +40,7 @@ async function createDAO() {
     fractalAzoriusMasterCopyContract,
     fractalRegistryContract,
     keyValuePairContract,
-    linearVotingMasterCopyContract
+    linearVotingMasterCopyContract,
   );
 
   //
@@ -61,16 +57,11 @@ async function createDAO() {
     azoriusTxBuilder.buildAddAzoriusContractAsOwnerTx(),
     azoriusTxBuilder.buildRemoveMultiSendOwnerTx(),
   ];
-  console.log("Internal safe txs created");
+  console.log('Internal safe txs created');
 
   txs.push(azoriusTxBuilder.buildDeployStrategyTx());
   txs.push(azoriusTxBuilder.buildDeployAzoriusTx());
-  txs.push(
-    azoriusTxBuilder.buildExecInternalSafeTx(
-      azoriusTxBuilder.signatures(),
-      internalTxs
-    )
-  );
+  txs.push(azoriusTxBuilder.buildExecInternalSafeTx(azoriusTxBuilder.signatures(), internalTxs));
   const encodedTx = encodeMultiSend(txs);
 
   //
@@ -86,15 +77,14 @@ async function createDAO() {
   //
   // Transfer remaining unlocked DCNT supply to the DAO
   // This is equal to total DCNT supply minus tokens held in lock contract
-  const amountToTransfer = utils
-    .parseEther(shutterDAOConfig.initialSupply)
+  const amountToTransfer = utils.parseEther(shutterDAOConfig.initialSupply);
   const tokenTransfer = await shutterTokenContract.transfer(
     predictedSafeContract.address,
-    amountToTransfer
+    amountToTransfer,
   );
   // await tokenTransfer.wait();
 
-  console.log("Shutter Tokens transferred to Shutter DAO:");
+  console.log('Shutter Tokens transferred to Shutter DAO:');
   console.table({
     amountToTransfer: ethers.utils.formatEther(amountToTransfer),
     hash: tokenTransfer.hash,
@@ -104,22 +94,21 @@ async function createDAO() {
   // Transfer ownership of the Shutter Token
   // To the Shutter DAO
   const transferTokenOwnership = await shutterTokenContract.transferOwnership(
-    predictedSafeContract.address
+    predictedSafeContract.address,
   );
   await transferTokenOwnership.wait();
-  console.log("Shutter Token ownership transferred to Shutter DAO:");
+  console.log('Shutter Token ownership transferred to Shutter DAO:');
   console.table({
     dao: predictedSafeContract.address,
     hash: transferTokenOwnership.hash,
   });
-
 
   logEthereumLogo();
 }
 
 createDAO()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });
