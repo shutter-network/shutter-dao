@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.22 <0.9.0;
 
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
