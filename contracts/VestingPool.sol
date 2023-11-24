@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.8.22 <0.9.0;
-import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+
+import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 /// @title Vesting contract for single account
 /// Original contract - https://github.com/safe-global/safe-token/blob/main/contracts/VestingPool.sol
@@ -40,10 +41,10 @@ contract VestingPool {
         0x47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218;
 
     // keccak256(
-    //     "Vesting(uint128 initialUnlock,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount)"
+    //     "Vesting(uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock)"
     // );
     bytes32 private constant VESTING_TYPEHASH =
-        0x330dfc3989010d93828ddcd8cee5ec2ddf83d2483e7e9d04bc25d8e395aad690;
+        0x64e0240993d7899042c62815d772f6e55ab80721965faae4cc14a19e071d1ddf;
 
     address public token;
     address public poolManager;
@@ -60,7 +61,7 @@ contract VestingPool {
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Can only be called by owner");
+        require(msg.sender == owner, "Can only be claimed by vesting owner");
         _;
     }
 
@@ -80,6 +81,10 @@ contract VestingPool {
         address _owner
     ) public {
         require(!initialised, "The contract has already been initialised.");
+        require(_token != address(0), "Invalid token account");
+        require(_poolManager != address(0), "Invalid pool manager account");
+        require(_owner != address(0), "Invalid account");
+
         initialised = true;
 
         token = _token;
@@ -109,15 +114,16 @@ contract VestingPool {
         uint64 startDate,
         uint128 amount,
         uint128 initialUnlock
-    ) public virtual onlyPoolManager returns(bytes32) {
-        return _addVesting(
-            curveType,
-            managed,
-            durationWeeks,
-            startDate,
-            amount,
-            initialUnlock
-        );
+    ) public virtual onlyPoolManager returns (bytes32) {
+        return
+            _addVesting(
+                curveType,
+                managed,
+                durationWeeks,
+                startDate,
+                amount,
+                initialUnlock
+            );
     }
 
     /// @notice Calculate the amount of tokens available for new vestings.
@@ -415,12 +421,12 @@ contract VestingPool {
         bytes32 vestingDataHash = keccak256(
             abi.encode(
                 VESTING_TYPEHASH,
-                initialUnlock,
                 curveType,
                 managed,
                 durationWeeks,
                 startDate,
-                amount
+                amount,
+                initialUnlock
             )
         );
         vestingId = keccak256(
