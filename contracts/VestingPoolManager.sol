@@ -78,7 +78,7 @@ contract VestingPoolManager {
         uint128 amount,
         uint128 initialUnlock
     ) external returns (bytes32) {
-        address vestingPool = getVestingPool(account);
+        address vestingPool = userToVestingPool[account];
 
         if (vestingPool == address(0)) {
             vestingPool = addVestingPool(account);

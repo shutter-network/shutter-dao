@@ -10,6 +10,8 @@ import "./ShutterToken.sol";
 /// original contract: https://github.com/safe-global/safe-token/blob/main/contracts/Airdrop.sol
 /// @author Daniel Dimitrov - @compojoom, Fred Lührs - @fredo
 contract Airdrop {
+    event RedeemedVesting(bytes32 indexed id, address indexed user);
+
     // Root of the Merkle tree
     bytes32 public root;
     // Time until which the airdrop can be redeemed
@@ -78,6 +80,8 @@ contract Airdrop {
 
         token.approve(spender, amount);
         bytes32 vestingId = vestingPoolManager.addVesting(msg.sender, curveType, false, durationWeeks, startDate, amount, 0);
+
+        emit RedeemedVesting(vestingId, msg.sender);
 
         // This call will fail if the vesting was already created
         require(MerkleProof.verify(proof, root, vestingId), "Invalid merkle proof");
