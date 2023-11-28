@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
-import { deployTestToken, getVestingPoolContract } from '../utils/setup';
+import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
 import { BigNumber, BigNumberish, Contract } from 'ethers';
 import { setNextBlockTime } from '../utils/state';
 import { logGas } from '../utils/gas';
@@ -11,17 +11,21 @@ describe('VestingPool - Manage', async () => {
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture();
-    const poolContract = await getVestingPoolContract();
+    const vestingLibraryContract = await getVestingLibraryContract();
+    const vestingLibrary = await vestingLibraryContract.deploy();
+    const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
     const pool = await poolContract.deploy();
     return {
       token,
       pool,
+      vestingLibrary,
     };
   });
 
   const addVesting = async (
     pool: Contract,
+    vestingLibrary: Contract,
     token: Contract,
     amount: BigNumberish,
     startTime: number,
@@ -29,7 +33,15 @@ describe('VestingPool - Manage', async () => {
   ) => {
     await token.transfer(pool.address, amount);
     await pool.initialize(token.address, poolManager.address, user2.address);
-    const vestingHash = await pool.vestingHash(0, managed, 104, startTime, amount, 0);
+    const vestingHash = await vestingLibrary.vestingHash(
+      user2.address,
+      0,
+      managed,
+      104,
+      startTime,
+      amount,
+      0,
+    );
     await expect(pool.addVesting(0, managed, 104, startTime, amount, 0))
       .to.emit(pool, 'AddedVesting')
       .withArgs(vestingHash);
@@ -61,13 +73,20 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if vesting is not managed', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime, false);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+        false,
+      );
 
       await expect(pool.pauseVesting(vestingHash)).to.be.revertedWith(
         'Only managed vestings can be paused',
@@ -75,13 +94,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('pause vesting that starts in the future', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await expect(pool.pauseVesting(vestingHash))
         .to.emit(pool, 'PausedVesting')
@@ -92,13 +117,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('pause vesting that started in the past', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime - 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await expect(logGas('pause vesting', pool.pauseVesting(vestingHash)))
         .to.emit(pool, 'PausedVesting')
@@ -109,13 +140,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if vesting is paused twice', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await expect(pool.pauseVesting(vestingHash))
         .to.emit(pool, 'PausedVesting')
@@ -143,25 +180,37 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if vesting is not paused', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await expect(pool.unpauseVesting(vestingHash)).to.be.revertedWith('Vesting is not paused');
     });
 
     it('unpause vesting that starts in the future', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       const startingDate = vesting.startDate;
       expect(vesting.pausingDate).to.be.eq(0);
@@ -183,13 +232,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('unpause vesting that starts in the future after it started', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
 
@@ -211,13 +266,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('unpause vesting that started in the past', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime - 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
 
@@ -257,13 +318,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('cancel vesting that starts in the future', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
       expect(vesting.cancelled).to.be.false;
@@ -281,13 +348,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('cancel paused vesting', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
       expect(vesting.cancelled).to.be.false;
@@ -320,13 +393,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('cancel vesting with vested tokens', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
       expect(vesting.cancelled).to.be.false;
@@ -348,13 +427,20 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if vesting is not managed', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime, false);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+        false,
+      );
 
       await expect(pool.cancelVesting(vestingHash)).to.be.revertedWith(
         'Only managed vestings can be cancelled',
@@ -362,13 +448,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if vesting is cancelled twice', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await pool.cancelVesting(vestingHash);
 
@@ -376,13 +468,19 @@ describe('VestingPool - Manage', async () => {
     });
 
     it('should revert if cancelled vesting is unpaused', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
 
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
       expect(vesting.cancelled).to.be.false;

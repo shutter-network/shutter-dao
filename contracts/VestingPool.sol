@@ -2,6 +2,7 @@
 pragma solidity >=0.8.22 <0.9.0;
 
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import { VestingLibrary } from "./libraries/VestingLibrary.sol";
 
 /// @title Vesting contract for single account
 /// Original contract - https://github.com/safe-global/safe-token/blob/main/contracts/VestingPool.sol
@@ -16,41 +17,11 @@ contract VestingPool {
     bool public initialised;
     address public owner;
 
-    // Sane limits based on: https://eips.ethereum.org/EIPS/eip-1985
-    // amountClaimed should always be equal to or less than amount
-    // pausingDate should always be equal to or greater than startDate
-    struct Vesting {
-        // First storage slot
-        uint128 initialUnlock; // 16 bytes -> Max 3.4e20 tokens (including decimals)
-        uint8 curveType; // 1 byte -> Max 256 different curve types
-        bool managed; // 1 byte
-        uint16 durationWeeks; // 2 bytes -> Max 65536 weeks ~ 1260 years
-        uint64 startDate; // 8 bytes -> Works until year 292278994, but not before 1970
-        // Second storage slot
-        uint128 amount; // 16 bytes -> Max 3.4e20 tokens (including decimals)
-        uint128 amountClaimed; // 16 bytes -> Max 3.4e20 tokens (including decimals)
-        // Third storage slot
-        uint64 pausingDate; // 8 bytes -> Works until year 292278994, but not before 1970
-        bool cancelled; // 1 byte
-    }
-
-    // keccak256(
-    //     "EIP712Domain(uint256 chainId,address verifyingContract)"
-    // );
-    bytes32 private constant DOMAIN_SEPARATOR_TYPEHASH =
-        0x47e79534a245952e8b16893a336b85a3d9ea9fa8c573f3d803afb92a79469218;
-
-    // keccak256(
-    //     "Vesting(uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock)"
-    // );
-    bytes32 private constant VESTING_TYPEHASH =
-        0x64e0240993d7899042c62815d772f6e55ab80721965faae4cc14a19e071d1ddf;
-
     address public token;
     address public poolManager;
 
     uint256 public totalTokensInVesting;
-    mapping(bytes32 => Vesting) public vestings;
+    mapping(bytes32 => VestingLibrary.Vesting) public vestings;
 
     modifier onlyPoolManager() {
         require(
@@ -152,7 +123,8 @@ contract VestingPool {
         uint128 initialUnlock
     ) internal returns (bytes32 vestingId) {
         require(curveType < 2, "Invalid vesting curve");
-        vestingId = vestingHash(
+        vestingId = VestingLibrary.vestingHash(
+            owner,
             curveType,
             managed,
             durationWeeks,
@@ -166,7 +138,7 @@ contract VestingPool {
         require(availableTokens >= amount, "Not enough tokens available");
         // Mark tokens for this vesting in use
         totalTokensInVesting += amount;
-        vestings[vestingId] = Vesting({
+        vestings[vestingId] = VestingLibrary.Vesting({
             curveType: curveType,
             managed: managed,
             durationWeeks: durationWeeks,
@@ -217,7 +189,7 @@ contract VestingPool {
         uint128 tokensToClaim
     ) internal onlyOwner returns (uint128 tokensClaimed) {
         require(beneficiary != address(0), "Cannot claim to 0-address");
-        Vesting storage vesting = vestings[vestingId];
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
         // Calculate how many tokens can be claimed
         uint128 availableClaim = _calculateVestedAmount(vesting) -
             vesting.amountClaimed;
@@ -240,7 +212,7 @@ contract VestingPool {
     /// @dev Only manageable vestings can be cancelled
     /// @param vestingId Id of the vesting that should be cancelled
     function cancelVesting(bytes32 vestingId) public onlyPoolManager {
-        Vesting storage vesting = vestings[vestingId];
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
         require(vesting.amount != 0, "Vesting not found");
         require(vesting.managed, "Only managed vestings can be cancelled");
         require(!vesting.cancelled, "Vesting already cancelled");
@@ -268,7 +240,7 @@ contract VestingPool {
     /// @dev Only manageable vestings can be paused
     /// @param vestingId Id of the vesting that should be paused
     function pauseVesting(bytes32 vestingId) public onlyPoolManager {
-        Vesting storage vesting = vestings[vestingId];
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
         require(vesting.amount != 0, "Vesting not found");
         require(vesting.managed, "Only managed vestings can be paused");
         require(vesting.pausingDate == 0, "Vesting already paused");
@@ -284,7 +256,7 @@ contract VestingPool {
     /// @dev Only vestings that have not been cancelled can be unpaused
     /// @param vestingId Id of the vesting that should be unpaused
     function unpauseVesting(bytes32 vestingId) public onlyPoolManager {
-        Vesting storage vesting = vestings[vestingId];
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
         require(vesting.amount != 0, "Vesting not found");
         require(vesting.pausingDate != 0, "Vesting is not paused");
         require(
@@ -310,7 +282,7 @@ contract VestingPool {
     function calculateVestedAmount(
         bytes32 vestingId
     ) external view returns (uint128 vestedAmount, uint128 claimedAmount) {
-        Vesting storage vesting = vestings[vestingId];
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
         require(vesting.amount != 0, "Vesting not found");
         vestedAmount = _calculateVestedAmount(vesting);
         claimedAmount = vesting.amountClaimed;
@@ -321,7 +293,7 @@ contract VestingPool {
     /// @param vesting The vesting for which to calculate the amounts
     /// @return vestedAmount The amount in atoms of tokens vested
     function _calculateVestedAmount(
-        Vesting storage vesting
+        VestingLibrary.Vesting storage vesting
     ) internal view returns (uint128 vestedAmount) {
         require(vesting.startDate <= block.timestamp, "Vesting not active yet");
         // Convert vesting duration to seconds
@@ -396,46 +368,5 @@ contract VestingPool {
             uint256(elapsedTime)) / (uint256(totalTime) * uint256(totalTime));
         require(amount <= type(uint128).max, "Overflow in curve calculation");
         return uint128(amount);
-    }
-
-    /// @notice Calculate the id for a vesting based on its parameters.
-    /// @dev The id is a EIP-712 based hash of the vesting.
-    /// @param curveType Type of the curve that is used for the vesting
-    /// @param managed Indicator if the vesting is managed by the pool manager
-    /// @param durationWeeks The duration of the vesting in weeks
-    /// @param startDate The date when the vesting started (can be in the future)
-    /// @param amount Amount of tokens that are vested in atoms
-    /// @param initialUnlock Amount of tokens that are unlocked immediately in atoms
-    /// @return vestingId Id of a vesting based on its parameters
-    function vestingHash(
-        uint8 curveType,
-        bool managed,
-        uint16 durationWeeks,
-        uint64 startDate,
-        uint128 amount,
-        uint128 initialUnlock
-    ) public view returns (bytes32 vestingId) {
-        bytes32 domainSeparator = keccak256(
-            abi.encode(DOMAIN_SEPARATOR_TYPEHASH, block.chainid, this)
-        );
-        bytes32 vestingDataHash = keccak256(
-            abi.encode(
-                VESTING_TYPEHASH,
-                curveType,
-                managed,
-                durationWeeks,
-                startDate,
-                amount,
-                initialUnlock
-            )
-        );
-        vestingId = keccak256(
-            abi.encodePacked(
-                bytes1(0x19),
-                bytes1(0x01),
-                domainSeparator,
-                vestingDataHash
-            )
-        );
     }
 }

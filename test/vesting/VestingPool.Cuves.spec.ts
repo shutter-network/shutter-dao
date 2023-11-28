@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
-import { deployTestToken, getVestingPoolContract } from '../utils/setup';
+import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
 import { BigNumber, Contract } from 'ethers';
 import { Vesting } from '../../src/utils/types';
 import { setNextBlockTime } from '../utils/state';
@@ -12,19 +12,28 @@ describe('VestingPool - Curves', async () => {
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture();
-    const poolContract = await getVestingPoolContract();
+    const vestingLibraryContract = await getVestingLibraryContract();
+    const vestingLibrary = await vestingLibraryContract.deploy();
+    const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
     const pool = await poolContract.deploy();
     return {
       token,
       pool,
+      vestingLibrary,
     };
   });
 
-  const addVesting = async (pool: Contract, token: Contract, vesting: Vesting) => {
+  const addVesting = async (
+    pool: Contract,
+    vestingLibrary: Contract,
+    token: Contract,
+    vesting: Vesting,
+  ) => {
     await pool.initialize(token.address, poolManager.address, user1.address);
     await token.transfer(pool.address, vesting.amount);
-    const vestingHash = await pool.vestingHash(
+    const vestingHash = await vestingLibrary.vestingHash(
+      vesting.owner,
       vesting.curveType,
       vesting.managed,
       vesting.durationWeeks,
@@ -70,16 +79,17 @@ describe('VestingPool - Curves', async () => {
     };
 
     const testLinearVesting = async (progress: number) => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       const vesting: Vesting = {
+        owner: user1.address,
         curveType: 0,
         managed: true,
         durationWeeks: 104,
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('200000', 18),
-        initialUnlocked: 0,
+        initialUnlock: 0,
       };
-      const { vestingHash } = await addVesting(pool, token, vesting);
+      const { vestingHash } = await addVesting(pool, vestingLibrary, token, vesting);
       if (progress > 0) {
         const durationSeconds = vesting.durationWeeks * WEEK_IN_SECONDS;
         await setNextBlockTime(vesting.startDate + (durationSeconds * progress) / 100, true);
@@ -163,16 +173,17 @@ describe('VestingPool - Curves', async () => {
     };
 
     const testExponentialVesting = async (progress: number) => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       const vesting: Vesting = {
+        owner: user1.address,
         curveType: 1,
         managed: true,
         durationWeeks: 208,
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('660000000', 18),
-        initialUnlocked: 0,
+        initialUnlock: 0,
       };
-      const { vestingHash } = await addVesting(pool, token, vesting);
+      const { vestingHash } = await addVesting(pool, vestingLibrary, token, vesting);
       if (progress > 0) {
         const durationSeconds = vesting.durationWeeks * WEEK_IN_SECONDS;
         await setNextBlockTime(vesting.startDate + (durationSeconds * progress) / 100, true);

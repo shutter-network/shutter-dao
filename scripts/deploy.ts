@@ -105,22 +105,41 @@ async function createDAO() {
     hash: transferTokenOwnership.hash,
   });
 
-  const VestingPool = await ethers.getContractFactory("VestingPool");
+  const VestingLibrary = await ethers.getContractFactory('VestingLibrary');
+  const vestingLibrary = await VestingLibrary.deploy();
+  await vestingLibrary.deployed();
+
+  const VestingPool = await ethers.getContractFactory('VestingPool', {
+    libraries: {
+      VestingLibrary: vestingLibrary.address,
+    },
+  });
+
   const vestingPool = await VestingPool.deploy();
   await vestingPool.deployed();
 
-  const VestingPoolManager = await ethers.getContractFactory("VestingPoolManager");
-  const vestingPoolManager = await VestingPoolManager.deploy(shutterTokenContract.address, vestingPool.address, predictedSafeContract.address);
+  const VestingPoolManager = await ethers.getContractFactory('VestingPoolManager');
+  const vestingPoolManager = await VestingPoolManager.deploy(
+    shutterTokenContract.address,
+    vestingPool.address,
+    predictedSafeContract.address,
+  );
   await vestingPoolManager.deployed();
 
   // TODO: make this configurable
   const airdropRedeemDeadline = 1735689600;
-  const Airdrop = await ethers.getContractFactory("Airdrop");
-  const airdrop = await Airdrop.deploy(shutterTokenContract.address, predictedSafeContract.address, airdropRedeemDeadline , vestingPoolManager.address,);
+  const Airdrop = await ethers.getContractFactory('Airdrop');
+  const airdrop = await Airdrop.deploy(
+    shutterTokenContract.address,
+    predictedSafeContract.address,
+    airdropRedeemDeadline,
+    vestingPoolManager.address,
+  );
   await airdrop.deployed();
 
-  console.log("VestingPool, VestingPoolManager, Airdrop deployed successfully:");
+  console.log('VestingLibrary, VestingPool, VestingPoolManager, Airdrop deployed successfully:');
   console.table({
+    vestingLibrary: vestingLibrary.address,
     vestingPool: vestingPool.address,
     vestingManager: vestingPoolManager.address,
     airdrop: airdrop.address,

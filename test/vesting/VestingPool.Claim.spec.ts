@@ -5,6 +5,7 @@ import {
   deployTestToken,
   getMock,
   getTestTokenContract,
+  getVestingLibraryContract,
   getVestingPoolContract,
 } from '../utils/setup';
 import { BigNumber, BigNumberish, Contract } from 'ethers';
@@ -18,24 +19,36 @@ describe('VestingPool - Claim', async () => {
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture();
-    const poolContract = await getVestingPoolContract();
+    const vestingLibraryContract = await getVestingLibraryContract();
+    const vestingLibrary = await vestingLibraryContract.deploy();
+    const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
     const pool = await poolContract.deploy();
     return {
       token,
       pool,
+      vestingLibrary,
     };
   });
 
   const addVesting = async (
     pool: Contract,
+    vestingLibrary: Contract,
     token: Contract,
     amount: BigNumberish,
     startTime: number,
     managed: boolean = true,
   ) => {
     await token.transfer(pool.address, amount);
-    const vestingHash = await pool.vestingHash(0, managed, 2, startTime, amount, 0);
+    const vestingHash = await vestingLibrary.vestingHash(
+      user1.address,
+      0,
+      managed,
+      2,
+      startTime,
+      amount,
+      0,
+    );
     await expect(pool.addVesting(0, managed, 2, startTime, amount, 0))
       .to.emit(pool, 'AddedVesting')
       .withArgs(vestingHash);
@@ -64,14 +77,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('should revert if claiming too many tokens', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await setNextBlockTime(currentTime + 7200);
       await expect(
@@ -81,9 +100,11 @@ describe('VestingPool - Claim', async () => {
 
     it('should revert if token transfer fails', async () => {
       const mock = await getMock();
+      const vestingLibraryContract = await getVestingLibraryContract();
+      const vestingLibrary = await vestingLibraryContract.deploy();
       const tokenContract = await getTestTokenContract();
       const token = tokenContract.attach(mock.address);
-      const poolContract = await getVestingPoolContract();
+      const poolContract = await getVestingPoolContract(vestingLibrary.address);
       const pool = await poolContract.deploy();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
@@ -98,7 +119,13 @@ describe('VestingPool - Claim', async () => {
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await mock.givenMethodReturnBool(tokenContract.interface.getSighash('transfer'), false);
       await setNextBlockTime(targetTime + 7200);
@@ -109,9 +136,11 @@ describe('VestingPool - Claim', async () => {
 
     it('should revert if token transfer reverts', async () => {
       const mock = await getMock();
+      const vestingLibraryContract = await getVestingLibraryContract();
+      const vestingLibrary = await vestingLibraryContract.deploy();
       const tokenContract = await getTestTokenContract();
       const token = tokenContract.attach(mock.address);
-      const poolContract = await getVestingPoolContract();
+      const poolContract = await getVestingPoolContract(vestingLibrary.address);
       const pool = await poolContract.deploy();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
@@ -126,7 +155,13 @@ describe('VestingPool - Claim', async () => {
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await mock.givenMethodRevertWithMessage(
         tokenContract.interface.getSighash('transfer'),
@@ -139,14 +174,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('should revert if  vesting is not active yet', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
 
       await expect(
         user1pool.claimVestedTokens(vestingHash, user1.address, MAX_UINT128),
@@ -154,14 +195,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('can claim available tokens while vesting is running', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
@@ -187,14 +234,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('can claim all tokens after vesting is completed', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
@@ -214,14 +267,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('can claim available tokens to different account', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
@@ -242,14 +301,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('can claim tokens when vesting is paused', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
@@ -296,14 +361,20 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('can claim available tokens multiple times to different accounts', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
-      const { vestingHash } = await addVesting(pool, token, vestingAmount, targetTime);
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);

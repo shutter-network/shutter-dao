@@ -12,12 +12,37 @@ export const getAirdrop = async () => {
     return Contract.attach(Deployment.address);
 }
 
-export const getVestingPoolContract = async () => {
-    return await hre.ethers.getContractFactory("VestingPool");
+export const getVestingPoolManagerContract = async () => {
+    return await hre.ethers.getContractFactory("VestingPoolManager");
 }
 
-export const getVestingPool = async () => {
-    const Contract = await getVestingPoolContract();
+export const getVestingPoolManager = async () => {
+    const Contract = await getVestingPoolManagerContract();
+    const Deployment = await deployments.get("VestingPoolManager");
+    return Contract.attach(Deployment.address);
+}
+
+export const getVestingLibraryContract = async () => {
+    return await hre.ethers.getContractFactory("VestingLibrary");
+}
+
+export const getVestingLibrary = async () => {
+    const Contract = await getVestingLibraryContract();
+    const Deployment = await deployments.get("VestingLibrary");
+    return Contract.attach(Deployment.address);
+}
+
+export const getVestingPoolContract = async (vestingLibraryAddress: string) => {
+
+    return await hre.ethers.getContractFactory("VestingPool", {
+        libraries: {
+            VestingLibrary: vestingLibraryAddress
+        }
+    });
+}
+
+export const getVestingPool = async (vestingLibraryAddress: string) => {
+    const Contract = await getVestingPoolContract(vestingLibraryAddress);
     const Deployment = await deployments.get("VestingPool");
     return Contract.attach(Deployment.address);
 }
@@ -32,8 +57,8 @@ export const deployTestToken = async (owner:string) => {
 }
 
 export const getToken = async () => {
-    const Deployment = await deployments.get("SafeToken");
-    const Contract = await hre.ethers.getContractFactory("SafeToken");
+    const Deployment = await deployments.get("ShutterToken");
+    const Contract = await hre.ethers.getContractFactory("ShutterToken");
     return Contract.attach(Deployment.address);
 }
 

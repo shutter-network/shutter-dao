@@ -1,45 +1,48 @@
-import { BigNumberish, Contract, utils } from 'ethers';
+import { keccak256 as hashKeccak256 } from '@ethersproject/keccak256';
+import { toUtf8Bytes } from '@ethersproject/strings';
+import { pack as solidityPack } from '@ethersproject/solidity';
+import { defaultAbiCoder } from '@ethersproject/abi';
 import { Vesting } from './types';
 
-export const EIP_DOMAIN = {
-  EIP712Domain: [
-    { type: 'uint256', name: 'chainId' },
-    { type: 'address', name: 'verifyingContract' },
-  ],
-};
+const DOMAIN_SEPARATOR_TYPEHASH = hashKeccak256(
+  toUtf8Bytes('EIP712Domain(string name,string version)'),
+);
+const VESTING_TYPEHASH = hashKeccak256(
+  toUtf8Bytes(
+    'Vesting(address owner,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock)',
+  ),
+);
 
-export const EIP712_VESTING_TYPE = {
-  // "Vesting(uint128 initialUnlock,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount)"
-  Vesting: [
-    { type: 'uint8', name: 'curveType' },
-    { type: 'bool', name: 'managed' },
-    { type: 'uint16', name: 'durationWeeks' },
-    { type: 'uint64', name: 'startDate' },
-    { type: 'uint128', name: 'amount' },
-    { type: 'uint128', name: 'initialUnlock' },
-  ],
-};
+export const calculateVestingHash = (vesting: Vesting): string => {
+  const { owner, curveType, managed, durationWeeks, startDate, amount, initialUnlock } = vesting;
 
-export const preimageVestingHash = (
-  pool: Contract,
-  vesting: Vesting,
-  chainId: BigNumberish,
-): string => {
-  return utils._TypedDataEncoder.encode(
-    { verifyingContract: pool.address, chainId },
-    EIP712_VESTING_TYPE,
-    vesting,
+  const domainSeparator = hashKeccak256(
+    defaultAbiCoder.encode(
+      ['bytes32', 'string', 'string'],
+      [DOMAIN_SEPARATOR_TYPEHASH, 'VestingLibrary', '1.0'],
+    ),
   );
-};
 
-export const calculateVestingHash = (
-  pool: Contract,
-  vesting: Vesting,
-  chainId: BigNumberish,
-): string => {
-  return utils._TypedDataEncoder.hash(
-    { verifyingContract: pool.address, chainId },
-    EIP712_VESTING_TYPE,
-    vesting,
+  const vestingDataHash = hashKeccak256(
+    defaultAbiCoder.encode(
+      ['bytes32', 'address', 'uint8', 'bool', 'uint16', 'uint64', 'uint128', 'uint128'],
+      [
+        VESTING_TYPEHASH,
+        owner,
+        curveType,
+        managed,
+        durationWeeks,
+        startDate,
+        amount,
+        initialUnlock,
+      ],
+    ),
+  );
+
+  return hashKeccak256(
+    solidityPack(
+      ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
+      [0x19, 0x01, domainSeparator, vestingDataHash],
+    ),
   );
 };

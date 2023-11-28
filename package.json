@@ -48,6 +48,7 @@
   "dependencies": {
     "@fractal-framework/fractal-contracts": "^0.3.6",
     "@gnosis.pm/mock-contract": "^4.0.0",
-    "@safe-global/safe-deployments": "^1.24.0"
+    "@safe-global/safe-deployments": "^1.24.0",
+    "solc": "^0.8.23-fixed"
   }
 }

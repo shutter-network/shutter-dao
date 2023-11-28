@@ -1,14 +1,17 @@
 import { expect } from 'chai';
 import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
-import { deployTestToken, getVestingPoolContract } from '../utils/setup';
+import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
+import { VestingLibrary } from '../../typechain';
 
 describe('VestingPool - Setup', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture();
-    const poolContract = await getVestingPoolContract();
+    const vestingLibraryContract = await getVestingLibraryContract();
+    const vestingLibrary = await vestingLibraryContract.deploy();
+    const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
     const pool = await poolContract.deploy();
 
@@ -17,6 +20,7 @@ describe('VestingPool - Setup', async () => {
     return {
       token,
       pool,
+      vestingLibrary,
     };
   });
 
@@ -74,14 +78,22 @@ describe('VestingPool - Setup', async () => {
     });
 
     it('can add linear vesting that starts in the future', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       await pool.initialize(token.address, poolManager.address, user1.address);
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
       await token.transfer(pool.address, vestingAmount);
-      const vestingHash = await pool.vestingHash(0, true, 104, targetTime, vestingAmount, 0);
+      const vestingHash = await vestingLibrary.vestingHash(
+        user1.address,
+        0,
+        true,
+        104,
+        targetTime,
+        vestingAmount,
+        0,
+      );
       await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
@@ -91,14 +103,22 @@ describe('VestingPool - Setup', async () => {
     });
 
     it('can add linear vesting that starts in the past', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       await pool.initialize(token.address, poolManager.address, user1.address);
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the past
       const targetTime = currentTime - 3600;
       await token.transfer(pool.address, vestingAmount);
-      const vestingHash = await pool.vestingHash(0, true, 104, targetTime, vestingAmount, 0);
+      const vestingHash = await vestingLibrary.vestingHash(
+        user1.address,
+        0,
+        true,
+        104,
+        targetTime,
+        vestingAmount,
+        0,
+      );
       await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
@@ -111,14 +131,22 @@ describe('VestingPool - Setup', async () => {
     });
 
     it('can add exponential vesting that starts in the future', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       await pool.initialize(token.address, poolManager.address, user1.address);
       const vestingAmount = ethers.utils.parseUnits('400000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the future
       const targetTime = currentTime + 3600;
       await token.transfer(pool.address, vestingAmount);
-      const vestingHash = await pool.vestingHash(1, true, 104, targetTime, vestingAmount, 0);
+      const vestingHash = await vestingLibrary.vestingHash(
+        user1.address,
+        1,
+        true,
+        104,
+        targetTime,
+        vestingAmount,
+        0,
+      );
       await expect(pool.addVesting(1, true, 104, targetTime, vestingAmount, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
@@ -128,14 +156,22 @@ describe('VestingPool - Setup', async () => {
     });
 
     it('can add exponential vesting that starts in the past', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       await pool.initialize(token.address, poolManager.address, user1.address);
       const vestingAmount = ethers.utils.parseUnits('400000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       // 1h in the past
       const targetTime = currentTime - 3600;
       await token.transfer(pool.address, vestingAmount);
-      const vestingHash = await pool.vestingHash(1, true, 208, targetTime, vestingAmount, 0);
+      const vestingHash = await vestingLibrary.vestingHash(
+        user1.address,
+        1,
+        true,
+        208,
+        targetTime,
+        vestingAmount,
+        0,
+      );
       await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
@@ -148,7 +184,7 @@ describe('VestingPool - Setup', async () => {
     });
 
     it('can add multiple vestings for same user', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       await pool.initialize(token.address, poolManager.address, user1.address);
       const vestingAmount1 = ethers.utils.parseUnits('400000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
@@ -159,7 +195,15 @@ describe('VestingPool - Setup', async () => {
       // Transfer tokens for first vesting
       await token.transfer(pool.address, vestingAmount1.add(ethers.utils.parseUnits('100000', 18)));
       // Add first vesting
-      const vestingHash1 = await pool.vestingHash(1, true, 208, targetTime, vestingAmount1, 0);
+      const vestingHash1 = await vestingLibrary.vestingHash(
+        user1.address,
+        1,
+        true,
+        208,
+        targetTime,
+        vestingAmount1,
+        0,
+      );
       await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount1, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash1);
@@ -182,7 +226,15 @@ describe('VestingPool - Setup', async () => {
       // Transfer tokens for second vesting
       await token.transfer(pool.address, vestingAmount1);
       // Add second vesting
-      const vestingHash2 = await pool.vestingHash(0, true, 104, targetTime, vestingAmount2, 0);
+      const vestingHash2 = await vestingLibrary.vestingHash(
+        user1.address,
+        0,
+        true,
+        104,
+        targetTime,
+        vestingAmount2,
+        0,
+      );
       await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount2, 0))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash2);
