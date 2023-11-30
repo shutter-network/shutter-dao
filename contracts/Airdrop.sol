@@ -32,7 +32,8 @@ contract Airdrop {
     /// @notice Creates the airdrop for the token at address `_token` and `_manager` as the manager. The airdrop can be redeemed until `_redeemDeadline`.
     /// @param _token The token that should be used for the airdrop
     /// @param _manager The manager of this airdrop (e.g. the address that can call `initializeRoot`)
-    /// @param _redeemDeadline The deadline until when the airdrop could be redeemed (if inititalized). This needs to be a date in the future.
+    /// @param _redeemDeadline The deadline until when the airdrop could be redeemed (if initialized). This needs to be a date in the future.
+    /// @param _vestingPoolManager The address of the VestingPoolManager contract
     constructor(
         address _token,
         address _manager,
@@ -67,6 +68,7 @@ contract Airdrop {
         uint16 durationWeeks,
         uint64 startDate,
         uint128 amount,
+        uint128 initialUnlock,
         bytes32[] calldata proof
     ) external {
         require(block.timestamp <= redeemDeadline, "Deadline to redeem vesting has been exceeded");
@@ -79,7 +81,7 @@ contract Airdrop {
         }
 
         token.approve(spender, amount);
-        bytes32 vestingId = vestingPoolManager.addVesting(msg.sender, curveType, false, durationWeeks, startDate, amount, 0);
+        bytes32 vestingId = vestingPoolManager.addVesting(msg.sender, curveType, false, durationWeeks, startDate, amount, initialUnlock);
 
         emit RedeemedVesting(vestingId, msg.sender);
 

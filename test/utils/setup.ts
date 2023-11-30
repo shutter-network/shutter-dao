@@ -1,6 +1,7 @@
-import hre, { deployments } from "hardhat"
+import hre, { deployments, ethers } from "hardhat";
 import { Wallet, Contract } from "ethers"
 import solc from "solc"
+import { VestingPoolManager } from "../../typechain";
 
 export const getAirdropContract = async () => {
     return await hre.ethers.getContractFactory("Airdrop");
@@ -110,3 +111,10 @@ export const deployContract = async (deployer: Wallet, source: string): Promise<
     const receipt = await transaction.wait()
     return new Contract(receipt.contractAddress, output.interface, deployer)
 }
+
+export const getUserVestingProxy = async (vestingPoolManager: VestingPoolManager, address: string) => {
+    return await ethers.getContractAt(
+      'VestingPool',
+      await vestingPoolManager.getVestingPool(address),
+    );
+};

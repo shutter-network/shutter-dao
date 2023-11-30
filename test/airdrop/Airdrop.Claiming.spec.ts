@@ -117,7 +117,7 @@ describe('Airdrop - Claiming', async () => {
     const proof = generateProof(elements, vestingHash);
     await airdrop
       .connect(user)
-      .redeem(vesting.curveType, vesting.durationWeeks, vesting.startDate, vesting.amount, proof);
+      .redeem(vesting.curveType, vesting.durationWeeks, vesting.startDate, vesting.amount, vesting.initialUnlock, proof);
     return { vesting, vestingHash };
   };
 

@@ -5,11 +5,11 @@ import {
   deployTestToken,
   getExecutor,
   getMock,
-  getTestTokenContract,
+  getTestTokenContract, getUserVestingProxy,
   getVestingLibraryContract,
   getVestingPoolContract,
-  getVestingPoolManagerContract,
-} from '../utils/setup';
+  getVestingPoolManagerContract
+} from "../utils/setup";
 import { VestingPoolManager } from '../../typechain';
 
 describe('VestingPoolManager - Setup', async () => {
@@ -71,13 +71,6 @@ describe('VestingPoolManager - Setup', async () => {
       mock,
     };
   });
-
-  const getUserVestingProxy = async (vestingPoolManager: VestingPoolManager, address: string) => {
-    return await ethers.getContractAt(
-      'VestingPool',
-      await vestingPoolManager.getVestingPool(address),
-    );
-  };
 
   it('should be able to create a vesting pool', async () => {
     const { token, vestingPoolManager, vestingLibrary } = await setupTests();
