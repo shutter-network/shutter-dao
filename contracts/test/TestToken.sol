@@ -35,6 +35,11 @@ contract TestToken is ERC20Votes, Pausable, Ownable {
         _unpause();
     }
 
+    function pause() public virtual onlyOwner {
+        if (paused()) revert NotPaused();
+        _pause();
+    }
+
     /// @dev See {ERC20-_update}
     /// @param from The account that is sending the tokens
     /// @param to The account that should receive the tokens
