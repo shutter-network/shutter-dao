@@ -81,11 +81,12 @@ contract Airdrop {
         }
 
         token.approve(spender, amount);
+        // This call will fail if the vesting was already created
         bytes32 vestingId = vestingPoolManager.addVesting(msg.sender, curveType, false, durationWeeks, startDate, amount, initialUnlock);
 
         emit RedeemedVesting(vestingId, msg.sender);
 
-        // This call will fail if the vesting was already created
+        // fail if the vestingId is not in the merkle root
         require(MerkleProof.verify(proof, root, vestingId), "Invalid merkle proof");
     }
 
