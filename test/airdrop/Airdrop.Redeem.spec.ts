@@ -345,9 +345,10 @@ describe('Airdrop - Redeem', async () => {
 
     it("should be able to redeem even if token is paused", async () => {
       const { airdrop, token, mock, executor, vestingPoolManager } = await setupTestsWithMock();
-      await executor.enableModule(airdrop.address);
+      await executor.enableModule(vestingPoolManager.address);
       const amount = ethers.utils.parseUnits("200000", 18)
       await mock.givenMethodReturnUint(token.interface.getSighash('balanceOf'), amount);
+      await mock.givenMethodReturnBool(token.interface.getSighash('paused'), true);
       const elements = await setupAirdrop(airdrop, token, amount, executor)
 
       const vesting = createVesting(user1.address, amount)
