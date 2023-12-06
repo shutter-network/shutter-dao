@@ -1,12 +1,15 @@
 import * as dotenv from 'dotenv';
 
 import { HardhatUserConfig, task } from 'hardhat/config';
-import '@nomiclabs/hardhat-etherscan';
+import '@nomicfoundation/hardhat-verify';
 import '@nomiclabs/hardhat-waffle';
-import "hardhat-deploy";
+import 'hardhat-deploy';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
+
+import './src/tasks/airdrop';
+import './src/tasks/deploy_contracts';
 
 dotenv.config();
 
@@ -24,11 +27,14 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
+  paths: {
+    // artifacts: "build/artifacts",
+    // cache: "build/cache",
+    deploy: 'src/deploy',
+    // sources: "contracts",
+  },
   solidity: {
-    compilers: [
-      { version:  '0.8.22' },
-      { version: "0.6.12" },
-    ]
+    compilers: [{ version: '0.8.22' }, { version: '0.6.12' }],
   },
   networks: {
     mainnet: {
