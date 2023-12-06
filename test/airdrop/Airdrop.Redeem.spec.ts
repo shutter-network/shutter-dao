@@ -21,7 +21,7 @@ describe('Airdrop - Redeem', async () => {
   const [airdropManager, user1, user2] = users;
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture();
+    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();
@@ -48,7 +48,7 @@ describe('Airdrop - Redeem', async () => {
   });
 
   const setupTestsWithMock = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture();
+    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
     const executor = await getExecutor();
     const airdropContract = await getAirdropContract();
     const vestingLibraryContract = await getVestingLibraryContract();

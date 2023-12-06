@@ -29,7 +29,7 @@ describe('Airdrop - Claiming', async () => {
   const [airdropManager, user1, user2] = users;
 
   const setupTestsWithoutExecutor = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture();
+    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();

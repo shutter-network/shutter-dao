@@ -20,7 +20,7 @@ describe('Airdrop - Setup', async () => {
   );
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture();
+    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();
