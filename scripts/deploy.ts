@@ -64,13 +64,15 @@ async function createDAO() {
   txs.push(azoriusTxBuilder.buildExecInternalSafeTx(azoriusTxBuilder.signatures(), internalTxs));
   const encodedTx = encodeMultiSend(txs);
 
+  console.time(`Multisend tx`);
   //
   // Execute all transactions via multisend
   const allTxsMultisendTx = await multisendContract.multiSend(encodedTx, {
     gasLimit: 5000000,
   });
   allTxsMultisendTx.wait();
-  console.timeEnd(`Multisend tx executed ${allTxsMultisendTx.hash}`);
+  console.timeEnd(`Multisend tx`);
+  console.log(`Multisend tx executed ${allTxsMultisendTx.hash}`);
 
   console.table({ daoAddress: predictedSafeContract.address });
 
@@ -101,6 +103,46 @@ async function createDAO() {
   console.table({
     dao: predictedSafeContract.address,
     hash: transferTokenOwnership.hash,
+  });
+
+  const VestingLibrary = await ethers.getContractFactory('VestingLibrary');
+  const vestingLibrary = await VestingLibrary.deploy();
+  await vestingLibrary.deployed();
+
+  const VestingPool = await ethers.getContractFactory('VestingPool', {
+    libraries: {
+      VestingLibrary: vestingLibrary.address,
+    },
+  });
+
+  const vestingPool = await VestingPool.deploy();
+  await vestingPool.deployed();
+
+  const VestingPoolManager = await ethers.getContractFactory('VestingPoolManager');
+  const vestingPoolManager = await VestingPoolManager.deploy(
+    shutterTokenContract.address,
+    vestingPool.address,
+    predictedSafeContract.address,
+  );
+  await vestingPoolManager.deployed();
+
+  // TODO: make this configurable
+  const airdropRedeemDeadline = 1735689600;
+  const Airdrop = await ethers.getContractFactory('Airdrop');
+  const airdrop = await Airdrop.deploy(
+    shutterTokenContract.address,
+    predictedSafeContract.address,
+    airdropRedeemDeadline,
+    vestingPoolManager.address,
+  );
+  await airdrop.deployed();
+
+  console.log('VestingLibrary, VestingPool, VestingPoolManager, Airdrop deployed successfully:');
+  console.table({
+    vestingLibrary: vestingLibrary.address,
+    vestingPool: vestingPool.address,
+    vestingManager: vestingPoolManager.address,
+    airdrop: airdrop.address,
   });
 
   logEthereumLogo();
