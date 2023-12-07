@@ -1,75 +1,115 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { BigNumber } from "ethers";
-import { ethers } from "hardhat";
-import { ShutterToken, ShutterToken__factory, } from "../typechain";
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { assert, expect } from 'chai';
+import { deployments, ethers } from 'hardhat';
+import { ShutterToken, ShutterToken__factory } from '../typechain';
 
-describe("Shutter Token", async function() {
-  let shutterToken: ShutterToken;
+describe('Shutter Token', async function () {
+  let deployer: SignerWithAddress;
   let owner: SignerWithAddress;
+  let sptContract: SignerWithAddress;
+  let airdrop: SignerWithAddress;
   let addr1: SignerWithAddress;
-  let addr2: SignerWithAddress;
-  let addr3: SignerWithAddress;
 
-  const mintWhole = 1_000_000_000;
-  const mintTotal = ethers.utils.parseEther(mintWhole.toString());
+  const mintTotal = 1_000_000_000;
+  const mintDeployer = 0;
+  const mintOwner = 700_000_000;
+  const mintSptExchangeContract = 100_000_000;
+  const mintAirdropContract = 200_000_000;
 
-  beforeEach(async function() {
-    [owner, addr1, addr2, addr3] = await ethers.getSigners();
+  const setupTests = deployments.createFixture(async ({ deployments }) => {
+    await deployments.fixture(['ShutterToken']);
 
-    shutterToken = await new ShutterToken__factory(owner).deploy(
-      owner.address
-    );
+    const shutterTokenDeployment = await deployments.get('ShutterToken');
+    const shutterToken = (await ethers.getContractAt(
+      'ShutterToken',
+      shutterTokenDeployment.address,
+    )) as ShutterToken;
+
+    return {
+      shutterToken,
+    };
   });
 
-  describe("Token features", function() {
-    describe("Minting the correct amount of tokens at deployment", function() {
-      let totalSupply: BigNumber;
+  beforeEach(async function () {
+    [deployer, owner, sptContract, airdrop, addr1] = await ethers.getSigners();
+  });
 
-      beforeEach(async function() {
-        totalSupply = await shutterToken.totalSupply();
+  describe('Token features', function () {
+    describe('Minting the correct amount of tokens at deployment', function () {
+      it('Should have 0 tokens minted at deployment', async function () {
+        const { shutterToken } = await setupTests();
+        const totalSupply = await shutterToken.totalSupply();
+        expect(totalSupply).to.equal(0);
       });
 
-      it("Should mint the correct amount of tokens in wei (decimals)", async function() {
-        expect(totalSupply).to.equal(mintTotal);
-      });
+      it('Should change ownership and mint correct amount of tokens on initialize', async function () {
+        const { shutterToken } = await setupTests();
+        await shutterToken
+          .connect(deployer)
+          .initialize(owner.address, sptContract.address, airdrop.address);
 
-      it("Should mint the correct amount of tokens in whole numbers", async function() {
-        expect(parseInt(ethers.utils.formatEther(totalSupply))).to.eq(
-          mintWhole
-        );
+        const totalSupply = await shutterToken.totalSupply();
+        const sptBalance = await shutterToken.balanceOf(sptContract.address);
+        const airdropBalance = await shutterToken.balanceOf(airdrop.address);
+        const ownerBalance = await shutterToken.balanceOf(owner.address);
+        const deployerBalance = await shutterToken.balanceOf(deployer.address);
+
+        assert.equal(parseInt(ethers.utils.formatEther(totalSupply)), mintTotal);
+        assert.equal(parseInt(ethers.utils.formatEther(sptBalance)), mintSptExchangeContract);
+        assert.equal(parseInt(ethers.utils.formatEther(airdropBalance)), mintAirdropContract);
+        assert.equal(parseInt(ethers.utils.formatEther(ownerBalance)), mintOwner);
+        assert.equal(parseInt(ethers.utils.formatEther(deployerBalance)), mintDeployer);
+
+        assert.equal(await shutterToken.owner(), owner.address);
       });
     });
 
+    it('Should not be able to initialize twice', async function () {
+      const { shutterToken } = await setupTests();
+      await shutterToken
+        .connect(deployer)
+        .initialize(owner.address, sptContract.address, airdrop.address);
+      await expect(
+        shutterToken.connect(deployer).initialize(owner.address, sptContract.address, airdrop.address),
+      ).to.be.revertedWith('OwnableUnauthorizedAccount');
+      await expect(
+        shutterToken.connect(owner).initialize(owner.address, sptContract.address, airdrop.address),
+      ).to.be.revertedWith('AlreadyInitialized');
+    });
   });
 
-  describe("Transfers", function () {
+  describe('Transfers', function () {
+    let token: ShutterToken;
     beforeEach(async function () {
-      // Transfer some tokens to addr1 from owner for testing
-      await shutterToken.transfer(addr3.address, 1000);
+      const { shutterToken } = await setupTests();
+      await shutterToken
+        .connect(deployer)
+        .initialize(owner.address, sptContract.address, airdrop.address);
+
+      token = shutterToken.connect(owner);
     });
-    it("Should allow transfers when not paused", async function () {
-      await shutterToken.unpause();
-      await shutterToken.connect(owner).transfer(addr1.address, 100);
-      expect(await shutterToken.balanceOf(addr1.address)).to.equal(100);
+    it('Should allow transfers when not paused', async function () {
+      await token.unpause();
+      await token.transfer(addr1.address, 100);
+      expect(await token.balanceOf(addr1.address)).to.equal(100);
     });
 
-    it("Should not allow transfers to the token contract itself", async function () {
-      await shutterToken.unpause();
-      await expect(
-        shutterToken.connect(owner).transfer(shutterToken.address, 100)
-      ).to.be.revertedWith("TransferToTokenContract");
+    it('Should not allow transfers to the token contract itself', async function () {
+      await token.unpause();
+      await expect(token.connect(owner).transfer(token.address, 100)).to.be.revertedWith(
+        'TransferToTokenContract',
+      );
     });
 
-    it("Should not allow transfers when paused and sender is not owner", async function () {
-      await expect(
-        shutterToken.connect(addr3).transfer(addr2.address, 100)
-      ).to.be.revertedWith("TransferWhilePaused");
+    it('Should not allow transfers when paused and sender is not owner', async function () {
+      await expect(token.connect(airdrop).transfer(deployer.address, 100)).to.be.revertedWith(
+        'TransferWhilePaused',
+      );
     });
 
-    it("Should allow transfers when paused if sender is owner", async function () {
-      await shutterToken.connect(owner).transfer(addr1.address, 100);
-      expect(await shutterToken.balanceOf(addr1.address)).to.equal(100);
+    it('Should allow transfers when paused if sender is owner', async function () {
+      await token.connect(owner).transfer(addr1.address, 100);
+      expect(await token.balanceOf(addr1.address)).to.equal(100);
     });
   });
 });

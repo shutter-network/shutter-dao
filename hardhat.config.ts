@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
         },
       },
       accounts: {
-        count: 4,
+        count: 5,
       },
     },
   },
