@@ -14,7 +14,7 @@ import {
 } from '../utils/setup';
 import { Vesting } from '../../src/utils/types';
 import { calculateVestingHash } from '../../src/utils/hash';
-import { BigNumber, Contract } from 'ethers';
+import { BigNumber } from 'ethers';
 import { generateRoot, generateProof } from '../../src/utils/proof';
 import { setNextBlockTime } from '../utils/state';
 
@@ -127,7 +127,7 @@ describe('Airdrop - Redeem', async () => {
       durationWeeks: 208,
       startDate: vestingStart,
       amount,
-      initialUnlock: initialUnlock,
+      initialUnlock,
     };
   };
 
@@ -247,7 +247,7 @@ describe('Airdrop - Redeem', async () => {
 
     it('will add vesting', async () => {
       const { airdrop, token } = await setupTests();
-      const { root, elements } = await generateAirdrop(amount);
+      const { elements } = await generateAirdrop(amount);
       await token.transfer(airdrop.address, amount);
       const vesting = createVesting(user1.address, amount);
       const vestingHash = calculateVestingHash(vesting);
@@ -270,7 +270,7 @@ describe('Airdrop - Redeem', async () => {
 
     it('can redeem all vestings', async () => {
       const { airdrop, token } = await setupTests();
-      const { root, elements } = await generateAirdrop(amount);
+      const { elements } = await generateAirdrop(amount);
       await token.transfer(airdrop.address, amount.mul(users.length));
       for (const user of users) {
         const vesting = createVesting(user.address, amount);
@@ -297,7 +297,7 @@ describe('Airdrop - Redeem', async () => {
     it('should be able to withdraw initialUnlock', async () => {
       const { airdropWithInitialUnlockVestings, token, vestingPoolManager } = await setupTests();
       const airdrop = airdropWithInitialUnlockVestings;
-      const { root, elements } = await generateAirdrop(amount, initialUnlockAmount);
+      const { elements } = await generateAirdrop(amount, initialUnlockAmount);
       await token.transfer(airdrop.address, amount);
       const vesting = createVesting(user1.address, amount, initialUnlockAmount);
       const vestingHash = calculateVestingHash(vesting);

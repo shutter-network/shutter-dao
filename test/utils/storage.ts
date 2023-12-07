@@ -1,5 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import fs from "fs";
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import fs from 'fs';
 
 type StateVariable = {
   name: string;
@@ -10,11 +10,9 @@ type StateVariable = {
 
 export const getContractStorageLayout = async (
   hre: HardhatRuntimeEnvironment,
-  smartContractName: string
+  smartContractName: string,
 ) => {
-  const { sourceName, contractName } = await hre.artifacts.readArtifact(
-    smartContractName
-  );
+  const { sourceName, contractName } = await hre.artifacts.readArtifact(smartContractName);
 
   const stateVariables: StateVariable[] = [];
 
@@ -23,15 +21,13 @@ export const getContractStorageLayout = async (
     const artifactJsonABI = JSON.parse(artifact.toString());
 
     const artifactIncludesStorageLayout =
-      artifactJsonABI?.output?.contracts?.[sourceName]?.[contractName]
-        ?.storageLayout;
+      artifactJsonABI?.output?.contracts?.[sourceName]?.[contractName]?.storageLayout;
     if (!artifactIncludesStorageLayout) {
       continue;
     }
 
     const contractStateVariablesFromArtifact =
-      artifactJsonABI.output.contracts[sourceName][contractName].storageLayout
-        .storage;
+      artifactJsonABI.output.contracts[sourceName][contractName].storageLayout.storage;
     for (const stateVariable of contractStateVariablesFromArtifact) {
       stateVariables.push({
         name: stateVariable.label,

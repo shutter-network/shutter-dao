@@ -1,17 +1,13 @@
 import '@nomiclabs/hardhat-ethers';
 
-import { ethers, run } from 'hardhat';
+import { ethers } from 'hardhat';
 import { encodeMultiSend } from '../../DaoBuilder/utils';
 import { getMasterCopies, getSafeData } from '../../DaoBuilder/daoUtils';
 import { shutterDAOConfig } from '../../config/shutterDAOConfig';
 import { AzoriusTxBuilder } from '../../DaoBuilder/AzoriusTxBuilder';
-import { ShutterToken} from "../../typechain";
+import { ShutterToken } from '../../typechain';
 
-const deployContracts = async function ({ getNamedAccounts, deployments }) {
-  const { deploy } = deployments;
-
-  const [deployer] = await ethers.getSigners();
-
+const deployContracts = async function ({ deployments }) {
   const {
     zodiacModuleProxyFactoryContract,
     fractalAzoriusMasterCopyContract,
@@ -23,8 +19,11 @@ const deployContracts = async function ({ getNamedAccounts, deployments }) {
 
   const { predictedSafeContract, createSafeTx } = await getSafeData(multisendContract);
 
-  const shutterTokenDeployment = await deployments.get('ShutterToken')
-  const shutterTokenContract = await ethers.getContractAt("ShutterToken", shutterTokenDeployment.address) as ShutterToken
+  const shutterTokenDeployment = await deployments.get('ShutterToken');
+  const shutterTokenContract = (await ethers.getContractAt(
+    'ShutterToken',
+    shutterTokenDeployment.address,
+  )) as ShutterToken;
 
   //
   // Build Token Voting Contract

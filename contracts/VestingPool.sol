@@ -36,8 +36,8 @@ contract VestingPool {
         _;
     }
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() {
-        // solium-disable-previous-line no-empty-blocks
         // don't do anything here to allow usage of xy contracts.
     }
 

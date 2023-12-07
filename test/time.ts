@@ -1,12 +1,12 @@
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const advanceBlock = async (): Promise<any> => {
-  await ethers.provider.send("evm_mine", []);
+  await ethers.provider.send('evm_mine', []);
 };
 
 const latest = async (): Promise<number> => {
-  const block = await ethers.provider.getBlock("latest");
+  const block = await ethers.provider.getBlock('latest');
   return block.timestamp;
 };
 
@@ -15,7 +15,7 @@ const increase = async (duration: number): Promise<void> => {
 };
 
 const increaseTo = async (to: number): Promise<void> => {
-  await ethers.provider.send("evm_setNextBlockTimestamp", [to]);
+  await ethers.provider.send('evm_setNextBlockTimestamp', [to]);
   await advanceBlock();
 };
 

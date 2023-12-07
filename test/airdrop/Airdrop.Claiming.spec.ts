@@ -4,9 +4,6 @@ import '@nomiclabs/hardhat-ethers';
 import {
   deployTestToken,
   getAirdropContract,
-  getExecutor,
-  getMock,
-  getTestTokenContract,
   getVestingLibraryContract,
   getVestingPoolContract,
   getVestingPoolManagerContract,
@@ -16,14 +13,12 @@ import { calculateVestingHash } from '../../src/utils/hash';
 import { BigNumber, Contract, Wallet } from 'ethers';
 import { generateRoot, generateProof } from '../../src/utils/proof';
 import { setNextBlockTime } from '../utils/state';
-import { logGas } from '../utils/gas';
 
 describe('Airdrop - Claiming', async () => {
   const vestingDurationInWeeks = 208;
   const vestingDuration = vestingDurationInWeeks * 7 * 24 * 60 * 60;
   const currentTime = Math.floor(new Date().getTime() / 1000) + 1000;
   const vestingStart = currentTime - vestingDuration / 2;
-  const vestingEnd = currentTime + vestingDuration / 2;
   const redeemDeadline = currentTime + 60 * 60;
   const users = waffle.provider.getWallets();
   const [airdropManager, user1, user2] = users;
@@ -42,7 +37,6 @@ describe('Airdrop - Claiming', async () => {
       vestingPool.address,
       airdropManager.address,
     );
-
 
     return {
       token,
@@ -100,7 +94,7 @@ describe('Airdrop - Claiming', async () => {
     if (fund) {
       await token.transfer(airdrop.address, amount);
     }
-    return {airdrop, elements, root}
+    return { airdrop, elements, root };
   };
 
   const redeemAirdrop = async (
@@ -115,7 +109,14 @@ describe('Airdrop - Claiming', async () => {
     const proof = generateProof(elements, vestingHash);
     await airdrop
       .connect(user)
-      .redeem(vesting.curveType, vesting.durationWeeks, vesting.startDate, vesting.amount, vesting.initialUnlock, proof);
+      .redeem(
+        vesting.curveType,
+        vesting.durationWeeks,
+        vesting.startDate,
+        vesting.amount,
+        vesting.initialUnlock,
+        proof,
+      );
     return { vesting, vestingHash };
   };
 
@@ -136,7 +137,7 @@ describe('Airdrop - Claiming', async () => {
     });
 
     it('should revert if no tokens to claim after a vesting was created', async () => {
-      const {token} = await setupTest();
+      const { token } = await setupTest();
       const amount = ethers.utils.parseUnits('200000', 18);
       const { airdrop, elements } = await setupAirdrop(amount);
 
@@ -152,7 +153,7 @@ describe('Airdrop - Claiming', async () => {
     it('should be able to claim if no vesting was created', async () => {
       const { token } = await setupTest();
       const amount = ethers.utils.parseUnits('200000', 18);
-      const {airdrop} = await setupAirdrop(amount);
+      const { airdrop } = await setupAirdrop(amount);
 
       expect(await token.balanceOf(airdrop.address)).to.be.eq(amount);
       expect(await token.balanceOf(user2.address)).to.be.eq(0);

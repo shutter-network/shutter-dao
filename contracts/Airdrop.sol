@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.22 <0.9.0;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "./VestingPoolManager.sol";
-import "./ShutterToken.sol";
+import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import { VestingPoolManager } from "./VestingPoolManager.sol";
+import { ShutterToken } from "./ShutterToken.sol";
 
 /// @title Airdrop contract
 /// original contract: https://github.com/safe-global/safe-token/blob/main/contracts/Airdrop.sol
@@ -25,7 +24,10 @@ contract Airdrop {
     address public immutable airdropManager;
 
     modifier onlyAirdropManager() {
-        require(msg.sender == airdropManager, "Can only be called by pool manager");
+        require(
+            msg.sender == airdropManager,
+            "Can only be called by pool manager"
+        );
         _;
     }
 
@@ -41,7 +43,10 @@ contract Airdrop {
         VestingPoolManager _vestingPoolManager,
         bytes32 _root
     ) {
-        require(_redeemDeadline > block.timestamp, "Redeem deadline should be in the future");
+        require(
+            _redeemDeadline > block.timestamp,
+            "Redeem deadline should be in the future"
+        );
         require(_root != bytes32(0), "State root should be set");
         redeemDeadline = _redeemDeadline;
         token = ShutterToken(_token);
@@ -66,7 +71,10 @@ contract Airdrop {
         uint128 initialUnlock,
         bytes32[] calldata proof
     ) external {
-        require(block.timestamp <= redeemDeadline, "Deadline to redeem vesting has been exceeded");
+        require(
+            block.timestamp <= redeemDeadline,
+            "Deadline to redeem vesting has been exceeded"
+        );
 
         address spender = address(vestingPoolManager);
 
@@ -76,22 +84,40 @@ contract Airdrop {
 
         token.approve(spender, amount);
         // This call will fail if the vesting was already created
-        bytes32 vestingId = vestingPoolManager.addVesting(msg.sender, curveType, false, durationWeeks, startDate, amount, initialUnlock);
+        bytes32 vestingId = vestingPoolManager.addVesting(
+            msg.sender,
+            curveType,
+            false,
+            durationWeeks,
+            startDate,
+            amount,
+            initialUnlock
+        );
 
         emit RedeemedVesting(vestingId, msg.sender);
 
         // fail if the vestingId is not in the merkle root
-        require(MerkleProof.verify(proof, root, vestingId), "Invalid merkle proof");
+        require(
+            MerkleProof.verify(proof, root, vestingId),
+            "Invalid merkle proof"
+        );
     }
 
     /// @notice Claims all tokens that have not been redeemed before `redeemDeadline`
     /// @dev Can only be called after `redeemDeadline` has been reached.
     /// @param beneficiary Account that should receive the claimed tokens
-    function claimUnusedTokens(address beneficiary) external onlyAirdropManager {
-        require(block.timestamp > redeemDeadline, "Tokens can still be redeemed");
+    function claimUnusedTokens(
+        address beneficiary
+    ) external onlyAirdropManager {
+        require(
+            block.timestamp > redeemDeadline,
+            "Tokens can still be redeemed"
+        );
         uint256 unusedTokens = token.balanceOf(address(this));
         require(unusedTokens > 0, "No tokens to claim");
-        require(token.transfer(beneficiary, unusedTokens), "Token transfer failed");
+        require(
+            token.transfer(beneficiary, unusedTokens),
+            "Token transfer failed"
+        );
     }
-
 }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.8.22;
+// solhint-disable
+pragma solidity >=0.8.22 <0.9.0;
 
 contract TestExecutor {
     receive() external payable {}
@@ -37,7 +38,7 @@ contract TestExecutor {
     ) public {
         bool success;
         bytes memory response;
-        if (operation == 0) (success, response) = to.call{value: value}(data);
+        if (operation == 0) (success, response) = to.call{ value: value }(data);
         else (success, response) = to.delegatecall(data);
         if (!success) {
             assembly {
@@ -54,6 +55,6 @@ contract TestExecutor {
     ) external returns (bool success) {
         require(modules[msg.sender], "TestExecutor: Not authorized");
         if (operation == 1) (success, ) = to.delegatecall(data);
-        else (success, ) = payable(to).call{value: value}(data);
+        else (success, ) = payable(to).call{ value: value }(data);
     }
 }

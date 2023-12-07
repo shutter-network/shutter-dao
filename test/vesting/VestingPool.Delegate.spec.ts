@@ -1,11 +1,7 @@
 import { expect } from 'chai';
 import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
-import {
-  deployTestToken,
-  getVestingLibraryContract,
-  getVestingPoolContract,
-} from '../utils/setup';
+import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
 
 describe('VestingPool - Delegate', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
@@ -30,8 +26,9 @@ describe('VestingPool - Delegate', async () => {
       const { pool, token } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
 
-      await expect(pool.connect(user2).delegateTokens(user2.address))
-        .to.revertedWith('Can only be claimed by vesting owner');
+      await expect(pool.connect(user2).delegateTokens(user2.address)).to.revertedWith(
+        'Can only be claimed by vesting owner',
+      );
 
       await expect(await pool.connect(user1).delegateTokens(user1.address))
         .to.emit(token, 'DelegateChanged')

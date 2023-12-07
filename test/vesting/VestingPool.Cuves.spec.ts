@@ -8,7 +8,7 @@ import { setNextBlockTime } from '../utils/state';
 
 describe('VestingPool - Curves', async () => {
   const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
-  const [poolManager, user1, user2] = waffle.provider.getWallets();
+  const [poolManager, user1] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);

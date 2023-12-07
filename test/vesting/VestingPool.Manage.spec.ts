@@ -333,7 +333,7 @@ describe('VestingPool - Manage', async () => {
       );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
-      expect(vesting.cancelled).to.be.false;
+      expect(vesting.cancelled).to.equal(false);
       expect(await pool.totalTokensInVesting()).to.be.eq(vestingAmount);
 
       await expect(logGas('cancel vesting', pool.cancelVesting(vestingHash)))
@@ -343,7 +343,7 @@ describe('VestingPool - Manage', async () => {
       vesting = await pool.vestings(vestingHash);
       // If vesting that starts in the future is cancelled then the pausing date is the start date
       expect(vesting.pausingDate).to.be.eq(vesting.startDate);
-      expect(vesting.cancelled).to.be.true;
+      expect(vesting.cancelled).to.equal(true);
       expect(await pool.totalTokensInVesting()).to.be.eq(0);
     });
 
@@ -363,7 +363,7 @@ describe('VestingPool - Manage', async () => {
       );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
-      expect(vesting.cancelled).to.be.false;
+      expect(vesting.cancelled).to.equal(false);
       expect(await pool.totalTokensInVesting()).to.be.eq(vestingAmount);
 
       await setNextBlockTime(targetTime + 3600);
@@ -372,7 +372,7 @@ describe('VestingPool - Manage', async () => {
       // Check paused vesting state
       vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(targetTime + 3600);
-      expect(vesting.cancelled).to.be.false;
+      expect(vesting.cancelled).to.equal(false);
       expect(await pool.totalTokensInVesting()).to.be.eq(vestingAmount);
 
       await setNextBlockTime(targetTime + 7200);
@@ -388,7 +388,7 @@ describe('VestingPool - Manage', async () => {
       vesting = await pool.vestings(vestingHash);
       // Pausing date should not be adjusted if vesting was already paused
       expect(vesting.pausingDate).to.be.eq(targetTime + 3600);
-      expect(vesting.cancelled).to.be.true;
+      expect(vesting.cancelled).to.equal(true);
       expect(await pool.totalTokensInVesting()).to.be.eq(expectedAmount);
     });
 
@@ -408,7 +408,7 @@ describe('VestingPool - Manage', async () => {
       );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
-      expect(vesting.cancelled).to.be.false;
+      expect(vesting.cancelled).to.equal(false);
       expect(await pool.totalTokensInVesting()).to.be.eq(vestingAmount);
 
       await setNextBlockTime(targetTime + 3600);
@@ -422,7 +422,7 @@ describe('VestingPool - Manage', async () => {
 
       vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(targetTime + 3600);
-      expect(vesting.cancelled).to.be.true;
+      expect(vesting.cancelled).to.equal(true);
       expect(await pool.totalTokensInVesting()).to.be.eq(expectedAmount);
     });
 
@@ -483,7 +483,7 @@ describe('VestingPool - Manage', async () => {
       );
       let vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(0);
-      expect(vesting.cancelled).to.be.false;
+      expect(vesting.cancelled).to.equal(false);
       expect(await pool.totalTokensInVesting()).to.be.eq(vestingAmount);
 
       await setNextBlockTime(targetTime + 3600);
@@ -491,7 +491,7 @@ describe('VestingPool - Manage', async () => {
 
       vesting = await pool.vestings(vestingHash);
       expect(vesting.pausingDate).to.be.eq(targetTime + 3600);
-      expect(vesting.cancelled).to.be.true;
+      expect(vesting.cancelled).to.equal(true);
 
       await expect(pool.unpauseVesting(vestingHash)).to.be.revertedWith(
         'Vesting has been cancelled and cannot be unpaused',

@@ -13,7 +13,7 @@ const deployContracts = async function ({ deployments }) {
     log: true,
   });
 
-    console.table({
+  console.table({
     vestingLibrary: vestingLibrary.address,
   });
   return true;

@@ -315,7 +315,7 @@ describe('VestingPool - Claim', async () => {
         vestingAmount,
         targetTime,
       );
-      let vesting = await pool.vestings(vestingHash);
+      const vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
 
@@ -375,7 +375,7 @@ describe('VestingPool - Claim', async () => {
         vestingAmount,
         targetTime,
       );
-      let vesting = await pool.vestings(vestingHash);
+      const vesting = await pool.vestings(vestingHash);
       expect(vesting.amount).to.be.eq(vestingAmount);
       expect(vesting.amountClaimed).to.be.eq(0);
 

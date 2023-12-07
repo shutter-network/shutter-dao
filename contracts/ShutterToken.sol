@@ -7,8 +7,6 @@ import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
-import "hardhat/console.sol";
-
 /// @title Shutter Token contract
 /// @author Daniel Dimitrov - @compojoom, Fred Lührs - @fredo
 contract ShutterToken is ERC20Votes, Pausable, Ownable {
@@ -32,7 +30,11 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
         _pause();
     }
 
-    function initialize(address newOwner, address sptExchangeContract, address airdropContract) public virtual onlyOwner {
+    function initialize(
+        address newOwner,
+        address sptExchangeContract,
+        address airdropContract
+    ) public virtual onlyOwner {
         if (initialized) revert AlreadyInitialized();
         initialized = true;
         // "ether" is used here to get 18 decimals

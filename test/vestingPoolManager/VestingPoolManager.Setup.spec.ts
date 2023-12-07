@@ -5,12 +5,12 @@ import {
   deployTestToken,
   getExecutor,
   getMock,
-  getTestTokenContract, getUserVestingProxy,
+  getTestTokenContract,
+  getUserVestingProxy,
   getVestingLibraryContract,
   getVestingPoolContract,
-  getVestingPoolManagerContract
-} from "../utils/setup";
-import { VestingPoolManager } from '../../typechain';
+  getVestingPoolManagerContract,
+} from '../utils/setup';
 
 describe('VestingPoolManager - Setup', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
@@ -30,8 +30,6 @@ describe('VestingPoolManager - Setup', async () => {
       pool.address,
       poolManager.address,
     );
-
-    // await token.transfer(user1.address, ethers.utils.parseUnits('400000', 18));
 
     return {
       token,
@@ -59,8 +57,6 @@ describe('VestingPoolManager - Setup', async () => {
       pool.address,
       executor.address,
     );
-
-    // await token.transfer(user1.address, ethers.utils.parseUnits('400000', 18));
 
     return {
       token,
@@ -149,7 +145,7 @@ describe('VestingPoolManager - Setup', async () => {
 
     const amount = ethers.utils.parseUnits('200000', 18);
 
-    let vestingHash = await vestingLibrary.vestingHash(
+    const vestingHash = await vestingLibrary.vestingHash(
       user1.address,
       0,
       true,
@@ -177,7 +173,7 @@ describe('VestingPoolManager - Setup', async () => {
 
     const amount = ethers.utils.parseUnits('200000', 18);
 
-    let vestingHash = await vestingLibrary.vestingHash(
+    const vestingHash = await vestingLibrary.vestingHash(
       user1.address,
       0,
       true,
@@ -205,7 +201,7 @@ describe('VestingPoolManager - Setup', async () => {
 
     const amount = ethers.utils.parseUnits('200000', 18);
 
-    let vestingHash = await vestingLibrary.vestingHash(
+    const vestingHash = await vestingLibrary.vestingHash(
       user1.address,
       0,
       true,
