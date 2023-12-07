@@ -7,6 +7,10 @@ export const getAirdropContract = async () => {
   return await hre.ethers.getContractFactory('Airdrop');
 };
 
+export const getSptConversionContract = async () => {
+  return await hre.ethers.getContractFactory('SptConversion');
+};
+
 export const getAirdrop = async () => {
   const Contract = await getAirdropContract();
   const Deployment = await deployments.get('Airdrop');
