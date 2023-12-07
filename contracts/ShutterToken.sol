@@ -7,13 +7,18 @@ import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
+import "hardhat/console.sol";
+
 /// @title Shutter Token contract
-/// Copied from Safe Token - author Richard Meissner - rmeissner
+/// @author Daniel Dimitrov - @compojoom, Fred Lührs - @fredo
 contract ShutterToken is ERC20Votes, Pausable, Ownable {
     // Custom errors
     error NotPaused();
     error TransferToTokenContract();
     error TransferWhilePaused();
+    error AlreadyInitialized();
+
+    bool private initialized = false;
 
     /// @dev Will mint 1 billion tokens to the owner and pause the contract
     constructor(
@@ -23,12 +28,20 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
         EIP712("ShutterToken", "1.0.0")
         Ownable(owner)
     {
-        // Transfer ownership immediately
-        _transferOwnership(owner);
-        // "ether" is used here to get 18 decimals
-        _mint(owner, 1_000_000_000 ether);
         // Contract is paused by default
         _pause();
+    }
+
+    function initialize(address newOwner, address sptExchangeContract, address airdropContract) public virtual onlyOwner {
+        if (initialized) revert AlreadyInitialized();
+        initialized = true;
+        // "ether" is used here to get 18 decimals
+        _mint(newOwner, 700_000_000 ether);
+        _mint(sptExchangeContract, 100_000_000 ether);
+        _mint(airdropContract, 200_000_000 ether);
+
+        // Transfer ownership
+        _transferOwnership(newOwner);
     }
 
     /// @notice Unpauses all token transfers.
