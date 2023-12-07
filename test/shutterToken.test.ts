@@ -1,7 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert, expect } from 'chai';
 import { deployments, ethers } from 'hardhat';
-import { ShutterToken, ShutterToken__factory } from '../typechain';
+import { ShutterToken } from '../typechain';
 
 describe('Shutter Token', async function () {
   let deployer: SignerWithAddress;
@@ -70,7 +70,9 @@ describe('Shutter Token', async function () {
         .connect(deployer)
         .initialize(owner.address, sptContract.address, airdrop.address);
       await expect(
-        shutterToken.connect(deployer).initialize(owner.address, sptContract.address, airdrop.address),
+        shutterToken
+          .connect(deployer)
+          .initialize(owner.address, sptContract.address, airdrop.address),
       ).to.be.revertedWith('OwnableUnauthorizedAccount');
       await expect(
         shutterToken.connect(owner).initialize(owner.address, sptContract.address, airdrop.address),

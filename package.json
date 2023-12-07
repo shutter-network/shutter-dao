@@ -6,7 +6,10 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "lint": "eslint . --ext .ts"
+    "lint": "npm run lint:sol && npm run lint:ts",
+    "lint:sol": "solhint 'contracts/**/*.sol'",
+    "lint:ts": "eslint . --ext .ts",
+    "fmt:sol": "prettier 'contracts/**/*.sol' -w"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-verify": "^2.0.2",

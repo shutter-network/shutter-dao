@@ -4,6 +4,7 @@
   "rules": {
     "compiler-version": ["error", "^0.8.22"],
     "func-visibility": ["warn", { "ignoreConstructors": true }],
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "custom-errors": "off"
   }
 }

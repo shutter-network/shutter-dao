@@ -28,9 +28,9 @@ type HardhatConfig = HardhatUserConfig & {
     [networkName: string]: {
       AIRDROP_ROOT_HASH: string;
       AIRDROP_REDEEM_DEADLINE: number;
-    },
-  }
-}
+    };
+  };
+};
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -74,7 +74,7 @@ const config: HardhatConfig = {
   },
   deploymentArguments: {
     goerli: {
-      AIRDROP_ROOT_HASH: "0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481",
+      AIRDROP_ROOT_HASH: '0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481',
       AIRDROP_REDEEM_DEADLINE: 1735689600,
     },
   },

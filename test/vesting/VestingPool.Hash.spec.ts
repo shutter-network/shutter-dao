@@ -7,7 +7,7 @@ import { Vesting } from '../../src/utils/types';
 import { calculateVestingHash } from '../../src/utils/hash';
 
 describe('VestingPool - Hash', async () => {
-  const [poolManager, user1, user2] = waffle.provider.getWallets();
+  const [poolManager, user1] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
@@ -23,10 +23,6 @@ describe('VestingPool - Hash', async () => {
       vestingLibrary,
     };
   });
-
-  const chainId = async () => {
-    return (await ethers.provider.getNetwork()).chainId;
-  };
 
   const getVestingHash = async (vestingLibrary: Contract, vesting: Vesting) => {
     return await vestingLibrary.vestingHash(
@@ -67,9 +63,7 @@ describe('VestingPool - Hash', async () => {
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: 0,
       };
-      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(
-        calculateVestingHash(vesting),
-      );
+      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });
 
     it('calculate correct hash for exponential vesting', async () => {
@@ -83,9 +77,7 @@ describe('VestingPool - Hash', async () => {
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: 0,
       };
-      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(
-        calculateVestingHash(vesting),
-      );
+      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });
 
     it('calculate correct hash for zero amount vesting', async () => {
@@ -99,9 +91,7 @@ describe('VestingPool - Hash', async () => {
         amount: 0,
         initialUnlock: 0,
       };
-      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(
-        calculateVestingHash(vesting),
-      );
+      expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });
   });
 });

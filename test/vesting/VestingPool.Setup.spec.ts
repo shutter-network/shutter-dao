@@ -2,10 +2,9 @@ import { expect } from 'chai';
 import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
 import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
-import { VestingLibrary } from '../../typechain';
 
 describe('VestingPool - Setup', async () => {
-  const [poolManager, user1, user2] = waffle.provider.getWallets();
+  const [poolManager, user1] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);

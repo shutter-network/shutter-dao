@@ -1,11 +1,10 @@
 /// SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.22 <0.9.0;
 
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./VestingPool.sol";
-import "./interfaces/ModuleManager.sol";
-import "./ShutterToken.sol";
+import { VestingPool } from "./VestingPool.sol";
+import { ModuleManager } from "./interfaces/ModuleManager.sol";
+import { ShutterToken } from "./ShutterToken.sol";
 
 /// @title Vesting Pool Manager
 /// @author Daniel Dimitrov - @compojoom, Fred Lührs - @fredo
@@ -42,9 +41,13 @@ contract VestingPoolManager {
             "Vesting pool already exists for the user"
         );
 
-       address vestingPool = Clones.clone(vestingPoolImplementation);
+        address vestingPool = Clones.clone(vestingPoolImplementation);
 
-        VestingPool(vestingPool).initialize(address(token), address(this), user);
+        VestingPool(vestingPool).initialize(
+            address(token),
+            address(this),
+            user
+        );
 
         userToVestingPool[user] = vestingPool;
 
@@ -90,14 +93,15 @@ contract VestingPoolManager {
             token.transferFrom(msg.sender, vestingPool, amount);
         }
 
-        return VestingPool(vestingPool).addVesting(
-            curveType,
-            managed,
-            durationWeeks,
-            startDate,
-            amount,
-            initialUnlock
-        );
+        return
+            VestingPool(vestingPool).addVesting(
+                curveType,
+                managed,
+                durationWeeks,
+                startDate,
+                amount,
+                initialUnlock
+            );
     }
 
     /// @notice If the token is paused, this will transfer the tokens via to the
@@ -126,7 +130,10 @@ contract VestingPoolManager {
     /// @notice cancel a vesting
     /// @param account The user for which the vesting should be canceled
     /// @param vestingId The id of the vesting that should be canceled
-    function cancelVesting(address account, bytes32 vestingId) external onlyDao {
+    function cancelVesting(
+        address account,
+        bytes32 vestingId
+    ) external onlyDao {
         address vestingPool = getVestingPool(account);
 
         VestingPool(vestingPool).cancelVesting(vestingId);
