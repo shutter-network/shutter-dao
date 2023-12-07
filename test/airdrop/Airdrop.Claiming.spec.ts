@@ -28,7 +28,7 @@ describe('Airdrop - Claiming', async () => {
   const users = waffle.provider.getWallets();
   const [airdropManager, user1, user2] = users;
 
-  const setupTestsWithoutExecutor = deployments.createFixture(async ({ deployments }) => {
+  const setupTest = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
@@ -43,15 +43,11 @@ describe('Airdrop - Claiming', async () => {
       airdropManager.address,
     );
 
-    const airdrop = await airdropContract.deploy(
-      token.address,
-      airdropManager.address,
-      redeemDeadline,
-      vestingPoolManager.address,
-    );
+
     return {
       token,
-      airdrop,
+      airdropContract,
+      vestingPoolManager,
     };
   });
 
@@ -68,7 +64,6 @@ describe('Airdrop - Claiming', async () => {
   };
 
   const generateAirdrop = async (
-    airdrop: Contract,
     amount: BigNumber,
     startDate: number = vestingStart,
   ): Promise<{ root: string; elements: string[] }> => {
@@ -88,21 +83,24 @@ describe('Airdrop - Claiming', async () => {
   };
 
   const setupAirdrop = async (
-    airdrop: Contract,
-    token: Contract,
     amount: BigNumber = ethers.utils.parseUnits('200000', 18),
     startDate: number = vestingStart,
-    executor?: Contract,
-  ): Promise<string[]> => {
-    const { root, elements } = await generateAirdrop(airdrop, amount, startDate);
-    if (executor) {
-      const initData = airdrop.interface.encodeFunctionData('initializeRoot', [root]);
-      await executor.exec(airdrop.address, 0, initData, 0);
-    } else {
-      await airdrop.initializeRoot(root);
+    fund: boolean = true,
+  ) => {
+    const { airdropContract, vestingPoolManager, token } = await setupTest();
+    const { root, elements } = await generateAirdrop(amount, startDate);
+    const airdrop = await airdropContract.deploy(
+      token.address,
+      airdropManager.address,
+      redeemDeadline,
+      vestingPoolManager.address,
+      root,
+    );
+
+    if (fund) {
+      await token.transfer(airdrop.address, amount);
     }
-    await token.transfer(airdrop.address, amount);
-    return elements;
+    return {airdrop, elements, root}
   };
 
   const redeemAirdrop = async (
@@ -123,14 +121,14 @@ describe('Airdrop - Claiming', async () => {
 
   describe('claimUnusedTokens', async () => {
     it('should revert if called before redeem deadline', async () => {
-      const { airdrop } = await setupTestsWithoutExecutor();
+      const { airdrop } = await setupAirdrop();
       await expect(airdrop.claimUnusedTokens(user2.address)).to.be.revertedWith(
         'Tokens can still be redeemed',
       );
     });
 
     it('should revert if no tokens to claim', async () => {
-      const { airdrop } = await setupTestsWithoutExecutor();
+      const { airdrop } = await setupAirdrop(undefined, undefined, false);
       await setNextBlockTime(redeemDeadline + 1);
       await expect(airdrop.claimUnusedTokens(user2.address)).to.be.revertedWith(
         'No tokens to claim',
@@ -138,9 +136,9 @@ describe('Airdrop - Claiming', async () => {
     });
 
     it('should revert if no tokens to claim after a vesting was created', async () => {
-      const { airdrop, token } = await setupTestsWithoutExecutor();
+      const {token} = await setupTest();
       const amount = ethers.utils.parseUnits('200000', 18);
-      const elements = await setupAirdrop(airdrop, token, amount);
+      const { airdrop, elements } = await setupAirdrop(amount);
 
       expect(await token.balanceOf(airdrop.address)).to.be.eq(amount);
       await redeemAirdrop(airdrop, elements, user1, amount);
@@ -152,9 +150,9 @@ describe('Airdrop - Claiming', async () => {
     });
 
     it('should be able to claim if no vesting was created', async () => {
-      const { airdrop, token } = await setupTestsWithoutExecutor();
+      const { token } = await setupTest();
       const amount = ethers.utils.parseUnits('200000', 18);
-      await token.transfer(airdrop.address, amount);
+      const {airdrop} = await setupAirdrop(amount);
 
       expect(await token.balanceOf(airdrop.address)).to.be.eq(amount);
       expect(await token.balanceOf(user2.address)).to.be.eq(0);
@@ -167,11 +165,11 @@ describe('Airdrop - Claiming', async () => {
     });
 
     it('should be able to claim if tokens left ofter after vesting was created', async () => {
-      const { airdrop, token } = await setupTestsWithoutExecutor();
+      const { token } = await setupTest();
+      const amount = ethers.utils.parseUnits('200000', 18);
+      const { airdrop, elements } = await setupAirdrop(amount);
       const leftOver = ethers.utils.parseUnits('100000', 18);
       await token.transfer(airdrop.address, leftOver);
-      const amount = ethers.utils.parseUnits('200000', 18);
-      const elements = await setupAirdrop(airdrop, token, amount);
 
       expect(await token.balanceOf(airdrop.address)).to.be.eq(amount.add(leftOver));
       await redeemAirdrop(airdrop, elements, user1, amount);
@@ -185,9 +183,9 @@ describe('Airdrop - Claiming', async () => {
     });
 
     it('should be able to claim if vesting was created', async () => {
-      const { airdrop, token } = await setupTestsWithoutExecutor();
+      const { token } = await setupTest();
       const amount = ethers.utils.parseUnits('200000', 18);
-      const elements = await setupAirdrop(airdrop, token, amount);
+      const { airdrop, elements } = await setupAirdrop(amount);
 
       expect(await token.balanceOf(airdrop.address)).to.be.eq(amount);
       await redeemAirdrop(airdrop, elements, user1, amount);
