@@ -70,7 +70,7 @@ contract Airdrop {
         uint128 amount,
         uint128 initialUnlock,
         bytes32[] calldata proof
-    ) external {
+    ) public virtual {
         require(
             block.timestamp <= redeemDeadline,
             "Deadline to redeem vesting has been exceeded"
