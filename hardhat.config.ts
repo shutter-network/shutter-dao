@@ -23,10 +23,18 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
+type HardhatConfig = HardhatUserConfig & {
+  deploymentArguments: {
+    [networkName: string]: {
+      AIRDROP_ROOT_HASH: string;
+      AIRDROP_REDEEM_DEADLINE: number;
+    },
+  }
+}
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-const config: HardhatUserConfig = {
+const config: HardhatConfig = {
   paths: {
     // artifacts: "build/artifacts",
     // cache: "build/cache",
@@ -62,6 +70,12 @@ const config: HardhatUserConfig = {
       accounts: {
         count: 5,
       },
+    },
+  },
+  deploymentArguments: {
+    goerli: {
+      AIRDROP_ROOT_HASH: "0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481",
+      AIRDROP_REDEEM_DEADLINE: 1735689600,
     },
   },
   gasReporter: {

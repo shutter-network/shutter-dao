@@ -38,20 +38,15 @@ contract Airdrop {
         address _token,
         address _manager,
         uint64 _redeemDeadline,
-        VestingPoolManager _vestingPoolManager
+        VestingPoolManager _vestingPoolManager,
+        bytes32 _root
     ) {
         require(_redeemDeadline > block.timestamp, "Redeem deadline should be in the future");
+        require(_root != bytes32(0), "State root should be set");
         redeemDeadline = _redeemDeadline;
         token = ShutterToken(_token);
         airdropManager = _manager;
         vestingPoolManager = _vestingPoolManager;
-    }
-
-    /// @notice Initialize the airdrop with `_root` as the Merkle root.
-    /// @dev This can only be called once
-    /// @param _root The Merkle root that should be set for this contract
-    function initializeRoot(bytes32 _root) public onlyAirdropManager {
-        require(root == bytes32(0), "State root already initialized");
         root = _root;
     }
 
@@ -72,7 +67,6 @@ contract Airdrop {
         bytes32[] calldata proof
     ) external {
         require(block.timestamp <= redeemDeadline, "Deadline to redeem vesting has been exceeded");
-        require(root != bytes32(0), "State root not initialized");
 
         address spender = address(vestingPoolManager);
 
