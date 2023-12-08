@@ -23,11 +23,14 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-type HardhatConfig = HardhatUserConfig & {
+export type HardhatConfig = HardhatUserConfig & {
   deploymentArguments: {
     [networkName: string]: {
       AIRDROP_ROOT_HASH: string;
       AIRDROP_REDEEM_DEADLINE: number;
+      SPT_CONVERSION_DEADLINE: number;
+      SPT_CONVERSION_ROOT_HASH: string;
+      SPT_TOKEN_ADDRESS: string;
     };
   };
 };
@@ -73,9 +76,20 @@ const config: HardhatConfig = {
     },
   },
   deploymentArguments: {
+    mainnet: {
+      AIRDROP_ROOT_HASH: '',
+      AIRDROP_REDEEM_DEADLINE: 0,
+      SPT_CONVERSION_DEADLINE: 0,
+      SPT_CONVERSION_ROOT_HASH: '',
+      SPT_TOKEN_ADDRESS: '0xcBe3Aef2fA9899d713cA592737b6aEB33668Ba4e',
+    },
     goerli: {
       AIRDROP_ROOT_HASH: '0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481',
       AIRDROP_REDEEM_DEADLINE: 1735689600,
+      SPT_CONVERSION_DEADLINE: 1735689600,
+      SPT_CONVERSION_ROOT_HASH:
+        '0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481',
+      SPT_TOKEN_ADDRESS: '0x62431B10a86FC3264A7E503A7918BB742c449A72',
     },
   },
   gasReporter: {

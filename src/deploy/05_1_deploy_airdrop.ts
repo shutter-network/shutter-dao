@@ -3,6 +3,7 @@ import '@nomiclabs/hardhat-ethers';
 import { ethers } from 'hardhat';
 import { getPredictedSafeAddress } from '../tasks/task_utils';
 import { BigNumber } from 'ethers';
+import { getDeploymentArguments } from '../utils/deploy';
 
 const deployContracts = async function ({ deployments, config, network }) {
   const { deploy } = deployments;
@@ -14,28 +15,18 @@ const deployContracts = async function ({ deployments, config, network }) {
 
   const predictedSafeAddress = await getPredictedSafeAddress();
 
-  if (!config.deploymentArguments[network.name]) {
-    throw new Error('deploymentArguments not found in config for network: ' + network.name);
-  }
-
-  const { AIRDROP_ROOT_HASH, AIRDROP_REDEEM_DEADLINE } = config.deploymentArguments[network.name];
-
-  if (!AIRDROP_ROOT_HASH) {
-    throw new Error('AIRDROP_ROOT_HASH not found in config for network: ' + network.name);
-  }
-
-  if (!AIRDROP_REDEEM_DEADLINE) {
-    throw new Error('AIRDROP_REDEEM_DEADLINE not found in config for network: ' + network.name);
-  }
+  const networkName = network.name;
+  const rootHash = getDeploymentArguments('AIRDROP_ROOT_HASH', config, networkName);
+  const deadline = getDeploymentArguments('AIRDROP_REDEEM_DEADLINE', config, networkName);
 
   const airdropDeployment = await deploy('Airdrop', {
     from: await deployer.getAddress(),
     args: [
       shutterToken.address,
       predictedSafeAddress,
-      AIRDROP_REDEEM_DEADLINE,
+      deadline,
       vestingPoolManager.address,
-      AIRDROP_ROOT_HASH,
+      rootHash,
     ],
     log: true,
   });
