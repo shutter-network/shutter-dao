@@ -78,6 +78,19 @@ describe('Shutter Token', async function () {
         shutterToken.connect(owner).initialize(owner.address, sptContract.address, airdrop.address),
       ).to.be.revertedWith('AlreadyInitialized');
     });
+
+    it('Should not be able to unpause if contract not initialized', async function () {
+      const { shutterToken } = await setupTests();
+      await expect(shutterToken.unpause()).to.be.revertedWith('NotInitialized');
+    });
+
+    it('Should be able to unpause contract if initialized', async function () {
+      const { shutterToken } = await setupTests();
+      await shutterToken
+        .connect(deployer)
+        .initialize(owner.address, sptContract.address, airdrop.address);
+      await expect(shutterToken.connect(owner).unpause()).to.emit(shutterToken, 'Unpaused');
+    });
   });
 
   describe('Transfers', function () {
