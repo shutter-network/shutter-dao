@@ -15,6 +15,7 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
     error TransferToTokenContract();
     error TransferWhilePaused();
     error AlreadyInitialized();
+    error NotInitialized();
 
     bool private initialized = false;
 
@@ -48,6 +49,7 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
 
     /// @notice Unpauses all token transfers.
     function unpause() public virtual onlyOwner {
+        if (!initialized) revert NotInitialized();
         if (!paused()) revert NotPaused();
         _unpause();
     }
