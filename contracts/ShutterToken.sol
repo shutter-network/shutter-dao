@@ -33,14 +33,14 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
 
     function initialize(
         address newOwner,
-        address sptExchangeContract,
+        address sptConversionContract,
         address airdropContract
     ) public virtual onlyOwner {
         if (initialized) revert AlreadyInitialized();
         initialized = true;
         // "ether" is used here to get 18 decimals
         _mint(newOwner, 700_000_000 ether);
-        _mint(sptExchangeContract, 100_000_000 ether);
+        _mint(sptConversionContract, 100_000_000 ether);
         _mint(airdropContract, 200_000_000 ether);
 
         // Transfer ownership
