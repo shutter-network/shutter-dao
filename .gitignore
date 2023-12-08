@@ -11,3 +11,6 @@ cache
 artifacts
 gas-report.txt
 /.envrc
+
+# Deployment files
+deployments
