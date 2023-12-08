@@ -36,11 +36,12 @@ contract Airdrop {
     /// @param _manager The manager of this airdrop (e.g. the address that can call `initializeRoot`)
     /// @param _redeemDeadline The deadline until when the airdrop could be redeemed (if initialized). This needs to be a date in the future.
     /// @param _vestingPoolManager The address of the VestingPoolManager contract
+    /// @param _root The Merkle root of the merkle drop
     constructor(
         address _token,
         address _manager,
         uint64 _redeemDeadline,
-        VestingPoolManager _vestingPoolManager,
+        address _vestingPoolManager,
         bytes32 _root
     ) {
         require(
@@ -51,7 +52,7 @@ contract Airdrop {
         redeemDeadline = _redeemDeadline;
         token = ShutterToken(_token);
         airdropManager = _manager;
-        vestingPoolManager = _vestingPoolManager;
+        vestingPoolManager = VestingPoolManager(_vestingPoolManager);
         root = _root;
     }
 
