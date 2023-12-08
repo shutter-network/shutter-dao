@@ -39,12 +39,25 @@ contract ShutterToken is ERC20Votes, Pausable, Ownable {
         if (initialized) revert AlreadyInitialized();
         initialized = true;
         // "ether" is used here to get 18 decimals
-        _mint(newOwner, 700_000_000 ether);
-        _mint(sptConversionContract, 100_000_000 ether);
-        _mint(airdropContract, 200_000_000 ether);
+        uint256 tokensForDeployer = 20_000 ether;
+        // https://etherscan.io/address/0xcBe3Aef2fA9899d713cA592737b6aEB33668Ba4e#readContract
+        uint256 tokensForSptConversionContract = 57428571428571444000000000;
+        uint256 tokensForAirdropContract = 200_000_000 ether;
+        uint256 tokensForNewOwner = _maxSupply() - tokensForDeployer - tokensForSptConversionContract - tokensForAirdropContract;
+
+        _mint(newOwner, tokensForNewOwner);
+        _mint(sptConversionContract, tokensForSptConversionContract);
+        _mint(airdropContract, tokensForAirdropContract);
+
+        // Give deployer some tokens
+        _mint(msg.sender, tokensForDeployer);
 
         // Transfer ownership
         _transferOwnership(newOwner);
+    }
+
+    function _maxSupply() internal pure override returns (uint256) {
+        return 1_000_000_000 ether;
     }
 
     /// @notice Unpauses all token transfers.

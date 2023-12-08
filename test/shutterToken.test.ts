@@ -2,6 +2,13 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert, expect } from 'chai';
 import { deployments, ethers } from 'hardhat';
 import { ShutterToken } from '../typechain';
+import { BigNumber, utils } from "ethers";
+
+const mintTotal = utils.parseEther("1000000000");
+const mintDeployer = utils.parseEther("20000");
+const mintSptConversionContract = BigNumber.from("57428571428571444000000000");
+const mintAirdropContract = utils.parseEther("200000000");
+const mintOwner = mintTotal.sub(mintDeployer).sub( mintSptConversionContract).sub(mintAirdropContract);
 
 describe('Shutter Token', async function () {
   let deployer: SignerWithAddress;
@@ -10,11 +17,6 @@ describe('Shutter Token', async function () {
   let airdrop: SignerWithAddress;
   let addr1: SignerWithAddress;
 
-  const mintTotal = 1_000_000_000;
-  const mintDeployer = 0;
-  const mintOwner = 700_000_000;
-  const mintSptExchangeContract = 100_000_000;
-  const mintAirdropContract = 200_000_000;
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
     await deployments.fixture(['ShutterToken']);
@@ -54,11 +56,11 @@ describe('Shutter Token', async function () {
         const ownerBalance = await shutterToken.balanceOf(owner.address);
         const deployerBalance = await shutterToken.balanceOf(deployer.address);
 
-        assert.equal(parseInt(ethers.utils.formatEther(totalSupply)), mintTotal);
-        assert.equal(parseInt(ethers.utils.formatEther(sptBalance)), mintSptExchangeContract);
-        assert.equal(parseInt(ethers.utils.formatEther(airdropBalance)), mintAirdropContract);
-        assert.equal(parseInt(ethers.utils.formatEther(ownerBalance)), mintOwner);
-        assert.equal(parseInt(ethers.utils.formatEther(deployerBalance)), mintDeployer);
+        expect(totalSupply).to.equal(mintTotal);
+        expect(sptBalance).to.equal(mintSptConversionContract);
+        expect(airdropBalance).to.equal(mintAirdropContract);
+        expect(ownerBalance).to.equal(mintOwner);
+        expect(deployerBalance).to.equal(mintDeployer);
 
         assert.equal(await shutterToken.owner(), owner.address);
       });
