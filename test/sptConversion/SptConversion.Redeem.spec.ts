@@ -259,7 +259,7 @@ describe('SptConversion - Redeem', async () => {
       ).to.be.revertedWith('Deadline to redeem vesting has been exceeded');
     });
 
-    it('will add vesting', async () => {
+    it('should be able to redeem vesting', async () => {
       const { airdrop, token, sptToken } = await setupTests();
       const { elements } = await generateAirdrop(amount);
       await sptToken.transfer(user1.address, amount);
@@ -282,6 +282,29 @@ describe('SptConversion - Redeem', async () => {
       )
         .to.emit(airdrop, 'RedeemedVesting')
         .withArgs(vestingHash, user1.address);
+    });
+
+    it.only('should not be able to redeem if not sending the SPT tokens', async () => {
+      const { airdrop, token, sptToken } = await setupTests();
+      const { elements } = await generateAirdrop(amount);
+      // user1 has no tokens, but grants allowance
+      await sptToken.connect(user1).approve(airdrop.address, amount);
+      await token.transfer(airdrop.address, amount);
+      const vesting = createVesting(user1.address, amount);
+      const vestingHash = calculateVestingHash(vesting);
+      const proof = generateProof(elements, vestingHash);
+      await expect(
+        airdrop
+          .connect(user1)
+          .redeem(
+            vesting.curveType,
+            vesting.durationWeeks,
+            vesting.startDate,
+            vesting.amount,
+            vesting.initialUnlock,
+            proof,
+          ),
+      ).to.revertedWith('ERC20InsufficientBalance');
     });
 
     it('can redeem all vestings', async () => {
