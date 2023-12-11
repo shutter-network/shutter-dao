@@ -34,8 +34,6 @@ export type HardhatConfig = HardhatUserConfig & {
     };
   };
 };
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatConfig = {
   paths: {
@@ -77,19 +75,28 @@ const config: HardhatConfig = {
   },
   deploymentArguments: {
     mainnet: {
-      AIRDROP_ROOT_HASH: '',
-      AIRDROP_REDEEM_DEADLINE: 0,
-      SPT_CONVERSION_DEADLINE: 0,
-      SPT_CONVERSION_ROOT_HASH: '',
+      SAFE_SALT: process.env.MAINNET_SAFE_SALT || '',
+      AIRDROP_ROOT_HASH: process.env.MAINNET_AIRDROP_ROOT_HASH || '',
+      AIRDROP_REDEEM_DEADLINE: process.env.MAINNET_AIRDROP_REDEEM_DEADLINE
+        ? parseInt(process.env.MAINNET_AIRDROP_REDEEM_DEADLINE)
+        : 0,
+      SPT_CONVERSION_DEADLINE: process.env.MAINNET_SPT_CONVERSION_DEADLINE
+        ? parseInt(process.env.MAINNET_SPT_CONVERSION_DEADLINE)
+        : 0,
+      SPT_CONVERSION_ROOT_HASH: process.env.MAINNET_SPT_CONVERSION_ROOT_HASH || '',
       SPT_TOKEN_ADDRESS: '0xcBe3Aef2fA9899d713cA592737b6aEB33668Ba4e',
     },
     goerli: {
-      AIRDROP_ROOT_HASH: '0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481',
-      AIRDROP_REDEEM_DEADLINE: 1735689600,
-      SPT_CONVERSION_DEADLINE: 1735689600,
-      SPT_CONVERSION_ROOT_HASH:
-        '0x97a8bf5f6abaeb4bfa1b14c685cdf054dfd2108d0a82c125b4cada1a1c0e8481',
-      SPT_TOKEN_ADDRESS: '0x62431B10a86FC3264A7E503A7918BB742c449A72',
+      SAFE_SALT: process.env.GOERLI_SAFE_SALT || '',
+      AIRDROP_ROOT_HASH: process.env.GOERLI_AIRDROP_ROOT_HASH || '',
+      AIRDROP_REDEEM_DEADLINE: process.env.GOERLI_AIRDROP_REDEEM_DEADLINE
+        ? parseInt(process.env.GOERLI_AIRDROP_REDEEM_DEADLINE)
+        : 0,
+      SPT_CONVERSION_DEADLINE: process.env.GOERLI_SPT_CONVERSION_DEADLINE
+        ? parseInt(process.env.GOERLI_SPT_CONVERSION_DEADLINE)
+        : 0,
+      SPT_CONVERSION_ROOT_HASH: process.env.GOERLI_SPT_CONVERSION_ROOT_HASH || '',
+      SPT_TOKEN_ADDRESS: process.env.GOERLI_SPT_TOKEN_ADDRESS || '0x62431B10a86FC3264A7E503A7918BB742c449A72',
     },
   },
   gasReporter: {
