@@ -2,7 +2,6 @@
 import { SafeTransaction } from './types';
 import { buildContractCall, getRandomBytes } from './utils';
 import { Contract } from 'ethers';
-import { ethers, network } from 'hardhat';
 import {
   GnosisSafeProxyFactory__factory as GnosisSafeFactory,
   Azorius as IAzorius,
@@ -19,12 +18,16 @@ import {
   getProxyFactoryDeployment,
   getSafeSingletonDeployment,
 } from '@safe-global/safe-deployments';
-const { AddressZero, HashZero } = ethers.constants;
+
+import { getHRE } from './hre';
+import { get } from 'http';
 
 export const SAFE_VERSION = '1.3.0';
 
 /* eslint-disable node/no-unsupported-features/es-syntax */
 async function getFractalContractAddressesByNetworkName() {
+  const hre = getHRE();
+  const { network } = hre;
   const contractsPath = `@fractal-framework/fractal-contracts/deployments/${network.name}`;
 
   const Azorius = await import(`${contractsPath}/Azorius.json`);
@@ -42,7 +45,7 @@ async function getFractalContractAddressesByNetworkName() {
 }
 /* eslint-enable node/no-unsupported-features/es-syntax */
 
-export const getMasterCopies = async (): Promise<{
+export const getMasterCopies = async (log = false): Promise<{
   zodiacModuleProxyFactoryContract: IModuleProxyFractory;
   fractalAzoriusMasterCopyContract: IAzorius;
   fractalRegistryContract: IFractalRegistry;
@@ -50,6 +53,8 @@ export const getMasterCopies = async (): Promise<{
   keyValuePairContract: IKeyValuePairs;
   multisendContract: Contract;
 }> => {
+  const hre = getHRE();
+  const { ethers, network } = hre;
   if (!network.config.chainId) {
     throw Error(`No chain ID found for: ${network.name}`);
   }
@@ -93,15 +98,18 @@ export const getMasterCopies = async (): Promise<{
     multisendSingletonDeployment.defaultAddress,
   );
 
-  console.log('Master copies fetched');
-  console.table({
-    zodiacModuleProxyFactoryContract: zodiacModuleProxyFactoryContract.address,
-    fractalAzoriusMasterCopyContract: fractalAzoriusMasterCopyContract.address,
-    fractalRegistryContract: fractalRegistryContract.address,
-    keyValuePairContract: keyValuePairContract.address,
-    linearVotingMasterCopyContract: linearVotingMasterCopyContract.address,
-    multisendContract: multisendContract.address,
-  });
+  if (log) {
+    console.log('Master copies fetched');
+    console.table({
+      zodiacModuleProxyFactoryContract: zodiacModuleProxyFactoryContract.address,
+      fractalAzoriusMasterCopyContract: fractalAzoriusMasterCopyContract.address,
+      fractalRegistryContract: fractalRegistryContract.address,
+      keyValuePairContract: keyValuePairContract.address,
+      linearVotingMasterCopyContract: linearVotingMasterCopyContract.address,
+      multisendContract: multisendContract.address,
+    });
+  }
+
 
   return {
     multisendContract,
@@ -115,10 +123,14 @@ export const getMasterCopies = async (): Promise<{
 
 export const getSafeData = async (
   multiSendContract: Contract,
+  saltNum: string = getRandomBytes(),
 ): Promise<{
   predictedSafeContract: GnosisSafe;
   createSafeTx: SafeTransaction;
 }> => {
+  const hre = getHRE();
+  const { ethers, network } = hre;
+  const { AddressZero, HashZero } = ethers.constants;
   if (!network.config.chainId) {
     throw Error(`No chain ID found for: ${network.name}`);
   }
@@ -128,8 +140,6 @@ export const getSafeData = async (
     network: network.config.chainId.toString(),
   });
   if (!gnosisFactory) throw new Error('Gnosis factory not found');
-
-  const saltNum = getRandomBytes();
 
   const gnosisSafeFactoryContract = (await ethers.getContractAt(
     GnosisSafeFactory.abi,
@@ -185,4 +195,11 @@ export const getSafeData = async (
   const predictedSafeContract = gnosisSafeSingletonContract.attach(predictedGnosisSafeAddress);
 
   return { predictedSafeContract, createSafeTx };
+};
+
+export const getPredictedSafeAddress = async (salt: string) => {
+  const { multisendContract } = await getMasterCopies();
+
+  const { predictedSafeContract } = await getSafeData(multisendContract, salt);
+  return predictedSafeContract.address;
 };

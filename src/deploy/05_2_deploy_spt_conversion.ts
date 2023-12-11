@@ -1,7 +1,7 @@
 import '@nomiclabs/hardhat-ethers';
 
 import { ethers } from 'hardhat';
-import { getPredictedSafeAddress } from '../tasks/task_utils';
+import { getPredictedSafeAddress } from '../../DaoBuilder/daoUtils';
 import { BigNumber } from 'ethers';
 import { getDeploymentArguments } from '../utils/deploy';
 
@@ -12,10 +12,11 @@ const deployContracts = async function ({ deployments, config, network }) {
 
   const vestingPoolManager = await deployments.get('VestingPoolManager');
   const shutterToken = await deployments.get('ShutterToken');
-
-  const predictedSafeAddress = await getPredictedSafeAddress();
-
   const networkName = network.name;
+  const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
+
+  const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
+
   const rootHash = getDeploymentArguments('SPT_CONVERSION_ROOT_HASH', config, networkName);
   const deadline = getDeploymentArguments('SPT_CONVERSION_DEADLINE', config, networkName);
   const sptTokenAddress = getDeploymentArguments('SPT_TOKEN_ADDRESS', config, networkName);

@@ -1,12 +1,11 @@
-import { type HardhatConfig } from '../../hardhat.config';
-
+import {type HardhatConfig} from '../../types/hardhat';
 export type DeploymentArgumentKeys = keyof HardhatConfig['deploymentArguments'][string];
 
-export const getDeploymentArguments = (
+export const getDeploymentArguments = <T>(
   key: DeploymentArgumentKeys,
   config: HardhatConfig,
   networkName: string,
-) => {
+): T => {
   if (!config.deploymentArguments || !config.deploymentArguments[networkName]) {
     throw new Error('deploymentArguments not found in config for network: ' + networkName);
   }
@@ -17,5 +16,5 @@ export const getDeploymentArguments = (
     throw new Error(`${key} not found in config for network: ${networkName}`);
   }
 
-  return value;
+  return value as T;
 };

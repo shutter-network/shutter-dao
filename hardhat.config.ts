@@ -9,7 +9,10 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 
 import './src/tasks/airdrop';
+import './src/tasks/randombytes';
 import './src/tasks/deploy_contracts';
+
+import {type HardhatConfig} from './types/hardhat';
 
 dotenv.config();
 
@@ -23,17 +26,6 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
   }
 });
 
-export type HardhatConfig = HardhatUserConfig & {
-  deploymentArguments: {
-    [networkName: string]: {
-      AIRDROP_ROOT_HASH: string;
-      AIRDROP_REDEEM_DEADLINE: number;
-      SPT_CONVERSION_DEADLINE: number;
-      SPT_CONVERSION_ROOT_HASH: string;
-      SPT_TOKEN_ADDRESS: string;
-    };
-  };
-};
 
 const config: HardhatConfig = {
   paths: {
