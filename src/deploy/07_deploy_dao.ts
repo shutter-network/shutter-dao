@@ -6,8 +6,9 @@ import { getMasterCopies, getSafeData } from '../../DaoBuilder/daoUtils';
 import { shutterDAOConfig } from '../../config/shutterDAOConfig';
 import { AzoriusTxBuilder } from '../../DaoBuilder/AzoriusTxBuilder';
 import { ShutterToken } from '../../typechain';
+import { getDeploymentArguments } from '../utils/deploy';
 
-const deployContracts = async function ({ deployments }) {
+const deployContracts = async function ({ deployments, config, network }) {
   const {
     zodiacModuleProxyFactoryContract,
     fractalAzoriusMasterCopyContract,
@@ -17,13 +18,18 @@ const deployContracts = async function ({ deployments }) {
     multisendContract,
   } = await getMasterCopies();
 
-  const { predictedSafeContract, createSafeTx } = await getSafeData(multisendContract);
+  const networkName = network.name;
+  const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
+
+  const { predictedSafeContract, createSafeTx } = await getSafeData(multisendContract, safeSalt);
 
   const shutterTokenDeployment = await deployments.get('ShutterToken');
   const shutterTokenContract = (await ethers.getContractAt(
     'ShutterToken',
     shutterTokenDeployment.address,
   )) as ShutterToken;
+
+  const vestingPoolManagerDeployment = await deployments.get('VestingPoolManager');
 
   //
   // Build Token Voting Contract
@@ -39,6 +45,7 @@ const deployContracts = async function ({ deployments }) {
     fractalRegistryContract,
     keyValuePairContract,
     linearVotingMasterCopyContract,
+    vestingPoolManagerDeployment.address,
   );
 
   // Setup Gnosis Safe creation TX
@@ -51,6 +58,7 @@ const deployContracts = async function ({ deployments }) {
     azoriusTxBuilder.buildUpdateDAOSnapshotURLTx(),
     azoriusTxBuilder.buildLinearVotingContractSetupTx(),
     azoriusTxBuilder.buildEnableAzoriusModuleTx(),
+    azoriusTxBuilder.buildEnableVestingPoolModuleTx(),
     azoriusTxBuilder.buildAddAzoriusContractAsOwnerTx(),
     azoriusTxBuilder.buildRemoveMultiSendOwnerTx(),
   ];
@@ -73,7 +81,7 @@ const deployContracts = async function ({ deployments }) {
 
   console.table({ daoAddress: predictedSafeContract.address });
 
-  // return true;
+  return true;
 };
 
 deployContracts.tags = ['DAO'];

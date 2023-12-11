@@ -32,6 +32,8 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
   private azoriusNonce: string;
   private strategyNonce: string;
 
+  private vestingPoolManagerAddress: string;
+
   constructor(
     shutterDAOConfig: ShutterDAOConfig,
     predictedSafeContract: GnosisSafe,
@@ -42,6 +44,7 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
     fractalRegistryContract: FractalRegistry,
     keyValuePairsContract: KeyValuePairs,
     linearVotingMasterCopyContract: LinearERC20Voting,
+    vestingPoolManagerAddress: string,
   ) {
     super(
       predictedSafeContract,
@@ -59,6 +62,8 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
 
     this.setPredictedStrategyAddress();
     this.setPredictedAzoriusAddress();
+
+    this.vestingPoolManagerAddress = vestingPoolManagerAddress;
 
     this.setContracts();
   }
@@ -99,6 +104,18 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
       this.predictedSafeContract,
       'enableModule',
       [this.azoriusContract.address],
+      0,
+      false,
+    );
+  }
+
+  public buildEnableVestingPoolModuleTx(): SafeTransaction {
+    if (!this.predictedSafeContract) throw new Error('Safe contract not set');
+    if (!this.azoriusContract) throw new Error('Azorius contract not set');
+    return buildContractCall(
+      this.predictedSafeContract,
+      'enableModule',
+      [this.vestingPoolManagerAddress],
       0,
       false,
     );
