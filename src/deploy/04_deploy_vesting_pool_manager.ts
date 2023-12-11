@@ -1,9 +1,10 @@
 import '@nomiclabs/hardhat-ethers';
 
 import { ethers } from 'hardhat';
-import { getPredictedSafeAddress } from '../tasks/task_utils';
+import { getPredictedSafeAddress } from '../../DaoBuilder/daoUtils';
+import { getDeploymentArguments } from '../utils/deploy';
 
-const deployContracts = async function ({ deployments }) {
+const deployContracts = async function ({ deployments, config, network }) {
   const { deploy } = deployments;
 
   const [deployer] = await ethers.getSigners();
@@ -11,7 +12,12 @@ const deployContracts = async function ({ deployments }) {
   const vestingPool = await deployments.get('VestingPool');
   const shutterToken = await deployments.get('ShutterToken');
 
-  const predictedSafeAddress = await getPredictedSafeAddress();
+  const networkName = network.name;
+  const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
+
+  const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
+
+  console.warn('predictedSafeAddress', predictedSafeAddress);
 
   const vestingPoolManager = await deploy('VestingPoolManager', {
     from: await deployer.getAddress(),

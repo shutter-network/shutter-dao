@@ -1,10 +1,11 @@
 import '@nomiclabs/hardhat-ethers';
 
 import { ethers } from 'hardhat';
-import { getPredictedSafeAddress } from '../tasks/task_utils';
+import { getPredictedSafeAddress } from '../../DaoBuilder/daoUtils';
 import { ShutterToken } from '../../typechain';
+import { getDeploymentArguments } from '../utils/deploy';
 
-const deployContracts = async function ({ deployments }) {
+const deployContracts = async function ({ deployments, config, network }) {
   const [deployer] = await ethers.getSigners();
 
   const shutterTokenDeployment = await deployments.get('ShutterToken');
@@ -14,7 +15,10 @@ const deployContracts = async function ({ deployments }) {
     shutterTokenDeployment.address,
   )) as ShutterToken;
 
-  const predictedSafeAddress = await getPredictedSafeAddress();
+  const networkName = network.name;
+  const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
+
+  const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
   // TODO: change this with the STP address once contract available
   const sptContractAddress = predictedSafeAddress;
   await shutterToken
