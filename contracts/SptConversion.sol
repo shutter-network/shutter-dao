@@ -12,7 +12,7 @@ contract SptConversion is Airdrop {
         address _token,
         address _manager,
         uint64 _redeemDeadline,
-        VestingPoolManager _vestingPoolManager,
+        address _vestingPoolManager,
         bytes32 _root,
         address _sptToken
     ) Airdrop(_token, _manager, _redeemDeadline, _vestingPoolManager, _root) {
