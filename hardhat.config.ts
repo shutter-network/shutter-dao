@@ -54,6 +54,7 @@ const config: HardhatConfig = {
     },
     hardhat: {
       chainId: 5,
+      initialBaseFeePerGas: 0,
       forking: {
         url: `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`,
         httpHeaders: {
