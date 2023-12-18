@@ -19,8 +19,8 @@ const deployContracts = async function ({ deployments, config, network }) {
   const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
 
   const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
-  // TODO: change this with the STP address once contract available
-  const sptContractAddress = predictedSafeAddress;
+  const sptContractDeployment = await deployments.get('SptConversion');
+  const sptContractAddress = sptContractDeployment.address;
   await shutterToken
     .connect(deployer)
     .initialize(predictedSafeAddress, sptContractAddress, airdrop.address);
