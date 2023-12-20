@@ -23,14 +23,11 @@ export interface SafeSignature {
 
 export interface ShutterDAOConfig {
   name: string;
-  lockStart: number;
-  lockDuration: number;
   snapshotURL: string;
-  initialSupply: string;
-  votingPeriod: number;
-  quorum: number;
-  timeLockPeriod: number;
-  executionPeriod: number;
-  votingBasis: number;
-  proposalRequiredWeight: number;
+  votingPeriodBlocks: number;
+  timeLockPeriodBlocks: number;
+  executionPeriodBlocks: number;
+  quorumBasisNumerator: number;
+  votingBasisNumerator: number;
+  proposalRequiredWeightTokens: number;
 }
