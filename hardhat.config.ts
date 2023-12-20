@@ -9,6 +9,7 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 
 import './src/tasks/airdrop';
+import './src/tasks/token';
 import './src/tasks/randombytes';
 import './src/tasks/deploy_contracts';
 
@@ -73,10 +74,6 @@ const config: HardhatConfig = {
       AIRDROP_REDEEM_DEADLINE: process.env.MAINNET_AIRDROP_REDEEM_DEADLINE
         ? parseInt(process.env.MAINNET_AIRDROP_REDEEM_DEADLINE)
         : 0,
-      SPT_CONVERSION_DEADLINE: process.env.MAINNET_SPT_CONVERSION_DEADLINE
-        ? parseInt(process.env.MAINNET_SPT_CONVERSION_DEADLINE)
-        : 0,
-      SPT_CONVERSION_ROOT_HASH: process.env.MAINNET_SPT_CONVERSION_ROOT_HASH || '',
       SPT_TOKEN_ADDRESS: '0xcBe3Aef2fA9899d713cA592737b6aEB33668Ba4e',
     },
     goerli: {
@@ -85,10 +82,6 @@ const config: HardhatConfig = {
       AIRDROP_REDEEM_DEADLINE: process.env.GOERLI_AIRDROP_REDEEM_DEADLINE
         ? parseInt(process.env.GOERLI_AIRDROP_REDEEM_DEADLINE)
         : 0,
-      SPT_CONVERSION_DEADLINE: process.env.GOERLI_SPT_CONVERSION_DEADLINE
-        ? parseInt(process.env.GOERLI_SPT_CONVERSION_DEADLINE)
-        : 0,
-      SPT_CONVERSION_ROOT_HASH: process.env.GOERLI_SPT_CONVERSION_ROOT_HASH || '',
       SPT_TOKEN_ADDRESS: process.env.GOERLI_SPT_TOKEN_ADDRESS || '0x62431B10a86FC3264A7E503A7918BB742c449A72',
     },
   },

@@ -29,5 +29,5 @@ export interface ShutterDAOConfig {
   executionPeriodBlocks: number;
   quorumBasisNumerator: number;
   votingBasisNumerator: number;
-  proposalRequiredWeightTokens: number;
+  proposalRequiredWeightTokens: string;
 }
