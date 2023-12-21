@@ -19,19 +19,14 @@ const deployContracts = async function ({ deployments, config, network }) {
   const safeSalt = getDeploymentArguments<string>('SAFE_SALT', config, networkName);
 
   const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
-  const sptContractDeployment = await deployments.get('SptConversion');
-  const sptContractAddress = sptContractDeployment.address;
   await shutterToken
     .connect(deployer)
-    .initialize(predictedSafeAddress, sptContractAddress, airdrop.address);
+    .initialize(predictedSafeAddress, airdrop.address);
 
   console.log('Shutter token initialized');
   console.table({
     newOwner: predictedSafeAddress,
     balanceOwner: ethers.utils.formatEther(await shutterToken.balanceOf(predictedSafeAddress)),
-    balanceSptTokenContract: ethers.utils.formatEther(
-      await shutterToken.balanceOf(predictedSafeAddress),
-    ),
     balanceAirdrop: ethers.utils.formatEther(await shutterToken.balanceOf(airdrop.address)),
     totalMinted: ethers.utils.formatEther(await shutterToken.totalSupply()),
   });
