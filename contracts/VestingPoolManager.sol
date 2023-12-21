@@ -126,34 +126,4 @@ contract VestingPoolManager {
             "Module transaction failed"
         );
     }
-
-    /// @notice cancel a vesting
-    /// @param account The user for which the vesting should be canceled
-    /// @param vestingId The id of the vesting that should be canceled
-    function cancelVesting(
-        address account,
-        bytes32 vestingId
-    ) external onlyDao {
-        address vestingPool = getVestingPool(account);
-
-        VestingPool(vestingPool).cancelVesting(vestingId);
-    }
-
-    /// @notice pause a vesting
-    /// @param account The user for which the vesting should be paused
-    /// @param vestingId The id of the vesting that should be paused
-    function pauseVesting(address account, bytes32 vestingId) public onlyDao {
-        address vestingPool = getVestingPool(account);
-
-        VestingPool(vestingPool).pauseVesting(vestingId);
-    }
-
-    /// @notice unpause a vesting
-    /// @param account The user for which the vesting should be unpaused
-    /// @param vestingId The id of the vesting that should be unpaused
-    function unpauseVesting(address account, bytes32 vestingId) public onlyDao {
-        address vestingPool = getVestingPool(account);
-
-        VestingPool(vestingPool).unpauseVesting(vestingId);
-    }
 }
