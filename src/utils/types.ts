@@ -8,4 +8,5 @@ export interface Vesting {
   startDate: number;
   amount: BigNumberish;
   initialUnlock: BigNumberish;
+  requiresSPT: boolean;
 }

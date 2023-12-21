@@ -70,7 +70,8 @@ contract Airdrop {
         uint64 startDate,
         uint128 amount,
         uint128 initialUnlock,
-        bytes32[] calldata proof
+        bytes32[] calldata proof,
+        bool requiresSPT
     ) public virtual {
         require(
             block.timestamp <= redeemDeadline,
@@ -92,7 +93,8 @@ contract Airdrop {
             durationWeeks,
             startDate,
             amount,
-            initialUnlock
+            initialUnlock,
+            requiresSPT
         );
 
         emit RedeemedVesting(vestingId, msg.sender);

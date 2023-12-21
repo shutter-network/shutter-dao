@@ -79,7 +79,8 @@ contract VestingPoolManager {
         uint16 durationWeeks,
         uint64 startDate,
         uint128 amount,
-        uint128 initialUnlock
+        uint128 initialUnlock,
+        bool requiresSPT
     ) external returns (bytes32) {
         address vestingPool = userToVestingPool[account];
 
@@ -100,7 +101,8 @@ contract VestingPoolManager {
                 durationWeeks,
                 startDate,
                 amount,
-                initialUnlock
+                initialUnlock,
+                requiresSPT
             );
     }
 

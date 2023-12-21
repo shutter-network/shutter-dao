@@ -18,6 +18,8 @@ import { BigNumber } from 'ethers';
 import { generateRoot, generateProof } from '../../src/utils/proof';
 import { setNextBlockTime } from '../utils/state';
 
+const { AddressZero } = ethers.constants;
+
 describe('Airdrop - Redeem', async () => {
   const vestingStart = new Date().getTime();
   const redeemDeadline = new Date().getTime() + 60 * 60 * 1000;
@@ -27,13 +29,13 @@ describe('Airdrop - Redeem', async () => {
   const initialUnlockAmount = ethers.utils.parseUnits('100000', 18);
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['VestingLibrary']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
-    const vestingPool = await poolContract.deploy();
+    const vestingPool = await poolContract.deploy(AddressZero);
     const vestingPoolManagerContract = await getVestingPoolManagerContract();
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,
@@ -67,7 +69,7 @@ describe('Airdrop - Redeem', async () => {
   });
 
   const setupTestsWithMock = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const executor = await getExecutor();
     const airdropContract = await getAirdropContract();
     const vestingLibraryContract = await getVestingLibraryContract();
@@ -77,7 +79,7 @@ describe('Airdrop - Redeem', async () => {
     const tokenContract = await getTestTokenContract();
     const mock = await getMock();
     const token = tokenContract.attach(mock.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
 
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,
@@ -128,6 +130,7 @@ describe('Airdrop - Redeem', async () => {
       startDate: vestingStart,
       amount,
       initialUnlock,
+      requiresSPT: false,
     };
   };
 
@@ -170,6 +173,7 @@ describe('Airdrop - Redeem', async () => {
           vesting.amount,
           vesting.initialUnlock,
           proof,
+          vesting.requiresSPT ,
         ),
       ).to.be.revertedWith('Invalid merkle proof');
     });
@@ -190,6 +194,7 @@ describe('Airdrop - Redeem', async () => {
           vesting.amount,
           vesting.initialUnlock,
           proof,
+          false,
         ),
       ).to.be.revertedWith('Invalid merkle proof');
     });
@@ -210,6 +215,7 @@ describe('Airdrop - Redeem', async () => {
           vesting.amount,
           vesting.initialUnlock,
           proof,
+          false,  
         );
       await expect(
         airdrop
@@ -221,6 +227,7 @@ describe('Airdrop - Redeem', async () => {
             vesting.amount,
             vesting.initialUnlock,
             proof,
+            false,
           ),
       ).to.be.revertedWith('Vesting id already used');
     });
@@ -241,6 +248,7 @@ describe('Airdrop - Redeem', async () => {
           vesting.amount,
           vesting.initialUnlock,
           proof,
+          false,  
         ),
       ).to.be.revertedWith('Deadline to redeem vesting has been exceeded');
     });
@@ -262,6 +270,7 @@ describe('Airdrop - Redeem', async () => {
             vesting.amount,
             vesting.initialUnlock,
             proof,
+            false,
           ),
       )
         .to.emit(airdrop, 'RedeemedVesting')
@@ -286,6 +295,7 @@ describe('Airdrop - Redeem', async () => {
               vesting.amount,
               vesting.initialUnlock,
               proof,
+              false,
             ),
         )
           .to.emit(airdrop, 'RedeemedVesting')
@@ -314,6 +324,7 @@ describe('Airdrop - Redeem', async () => {
             vesting.amount,
             vesting.initialUnlock,
             proof,
+            false 
           ),
       )
         .to.emit(airdrop, 'RedeemedVesting')
@@ -360,6 +371,7 @@ describe('Airdrop - Redeem', async () => {
             vesting.amount,
             vesting.initialUnlock,
             proof,
+            false,
           ),
       )
         .to.emit(airdrop, 'RedeemedVesting')

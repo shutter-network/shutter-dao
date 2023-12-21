@@ -7,7 +7,7 @@ library VestingLibrary {
 
     bytes32 private constant VESTING_TYPEHASH =
         keccak256(
-            "Vesting(address owner,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock)"
+            "Vesting(address owner,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock,bool requiresSPT)"
         );
 
     // Sane limits based on: https://eips.ethereum.org/EIPS/eip-1985
@@ -26,6 +26,7 @@ library VestingLibrary {
         // Third storage slot
         uint64 pausingDate; // 8 bytes -> Works until year 292278994, but not before 1970
         bool cancelled; // 1 byte
+        bool requiresSPT; // 1 byte
     }
 
     /// @notice Calculate the id for a vesting based on its parameters.
@@ -44,7 +45,8 @@ library VestingLibrary {
         uint16 durationWeeks,
         uint64 startDate,
         uint128 amount,
-        uint128 initialUnlock
+        uint128 initialUnlock,
+        bool requiresSPT
     ) external pure returns (bytes32 vestingId) {
         bytes32 domainSeparator = keccak256(
             abi.encode(DOMAIN_SEPARATOR_TYPEHASH, "VestingLibrary", "1.0")
@@ -58,7 +60,8 @@ library VestingLibrary {
                 durationWeeks,
                 startDate,
                 amount,
-                initialUnlock
+                initialUnlock,
+                requiresSPT
             )
         );
         vestingId = keccak256(
