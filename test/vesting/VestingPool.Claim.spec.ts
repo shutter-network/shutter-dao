@@ -20,7 +20,7 @@ describe('VestingPool - Claim', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
