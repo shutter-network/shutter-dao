@@ -196,10 +196,10 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
         this.predictedSafeContract.address, // owner
         this.shutterTokenContract.address, // token
         '0x0000000000000000000000000000000000000001', // Azorius module
-        this.shutterDAOConfig.votingPeriod, // voting period (blocks)
-        this.shutterDAOConfig.proposalRequiredWeight, // proposer weight, how much is needed to create a proposal.
-        this.shutterDAOConfig.quorum, // quorom numerator, denominator is 1,000,000, so quorum percentage is 50%
-        this.shutterDAOConfig.votingBasis, // basis numerator, denominator is 1,000,000, so basis percentage is 50% (simple majority)
+        this.shutterDAOConfig.votingPeriodBlocks, // voting period (blocks)
+        this.shutterDAOConfig.proposalRequiredWeightTokens, // proposer weight, how much is needed to create a proposal.
+        this.shutterDAOConfig.quorumBasisNumerator, // quorom numerator, denominator is 1,000,000, so quorum percentage is 50%
+        this.shutterDAOConfig.votingBasisNumerator, // basis numerator, denominator is 1,000,000, so basis percentage is 50% (simple majority)
       ],
     );
 
@@ -234,8 +234,8 @@ export class AzoriusTxBuilder extends BaseTxBuilder {
         this.predictedSafeContract.address,
         this.predictedSafeContract.address,
         [this.predictedStrategyAddress],
-        this.shutterDAOConfig.timeLockPeriod, // timelock period in blocks
-        this.shutterDAOConfig.executionPeriod, // execution period in blocks
+        this.shutterDAOConfig.timeLockPeriodBlocks, // timelock period in blocks
+        this.shutterDAOConfig.executionPeriodBlocks, // execution period in blocks
       ],
     );
 

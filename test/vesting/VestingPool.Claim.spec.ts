@@ -12,18 +12,20 @@ import { BigNumber, BigNumberish, Contract } from 'ethers';
 import { setNextBlockTime } from '../utils/state';
 import { logGas } from '../utils/gas';
 
+const { AddressZero } = ethers.constants;
+
 describe('VestingPool - Claim', async () => {
   const MAX_UINT128 = BigNumber.from('0xffffffffffffffffffffffffffffffff');
   const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
   const [poolManager, user1, user2] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
     return {
       token,
       pool,
@@ -48,8 +50,9 @@ describe('VestingPool - Claim', async () => {
       startTime,
       amount,
       0,
+      false
     );
-    await expect(pool.addVesting(0, managed, 2, startTime, amount, 0))
+    await expect(pool.addVesting(0, managed, 2, startTime, amount, 0, false))
       .to.emit(pool, 'AddedVesting')
       .withArgs(vestingHash);
     return { vestingHash };
@@ -57,9 +60,20 @@ describe('VestingPool - Claim', async () => {
 
   describe('claimVestedTokens', async () => {
     it('should revert if not vesting owner', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
-      const vestingHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('test'));
+      const vestingAmount = ethers.utils.parseUnits('1000', 18);
+      const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
+      // 1h in the future
+      const targetTime = currentTime + 3600;
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
+
       const user2Pool = pool.connect(user2);
       await expect(
         user2Pool.claimVestedTokens(vestingHash, user1.address, MAX_UINT128),
@@ -67,9 +81,19 @@ describe('VestingPool - Claim', async () => {
     });
 
     it('should revert if beneficiary is 0-address', async () => {
-      const { pool, token } = await setupTests();
+      const { pool, token, vestingLibrary } = await setupTests();
       pool.initialize(token.address, poolManager.address, user1.address);
-      const vestingHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('test'));
+      const vestingAmount = ethers.utils.parseUnits('1000', 18);
+      const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
+      // 1h in the future
+      const targetTime = currentTime + 3600;
+      const { vestingHash } = await addVesting(
+        pool,
+        vestingLibrary,
+        token,
+        vestingAmount,
+        targetTime,
+      );
       const user1pool = pool.connect(user1);
       await expect(
         user1pool.claimVestedTokens(vestingHash, ethers.constants.AddressZero, MAX_UINT128),
@@ -105,7 +129,7 @@ describe('VestingPool - Claim', async () => {
       const tokenContract = await getTestTokenContract();
       const token = tokenContract.attach(mock.address);
       const poolContract = await getVestingPoolContract(vestingLibrary.address);
-      const pool = await poolContract.deploy();
+      const pool = await poolContract.deploy(AddressZero);
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);
@@ -141,7 +165,7 @@ describe('VestingPool - Claim', async () => {
       const tokenContract = await getTestTokenContract();
       const token = tokenContract.attach(mock.address);
       const poolContract = await getVestingPoolContract(vestingLibrary.address);
-      const pool = await poolContract.deploy();
+      const pool = await poolContract.deploy(AddressZero);
       pool.initialize(token.address, poolManager.address, user1.address);
       const user1pool = pool.connect(user1);
       const vestingAmount = ethers.utils.parseUnits('1000', 18);

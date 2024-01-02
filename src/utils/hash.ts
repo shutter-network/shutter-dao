@@ -9,12 +9,12 @@ const DOMAIN_SEPARATOR_TYPEHASH = hashKeccak256(
 );
 const VESTING_TYPEHASH = hashKeccak256(
   toUtf8Bytes(
-    'Vesting(address owner,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock)',
+    'Vesting(address owner,uint8 curveType,bool managed,uint16 durationWeeks,uint64 startDate,uint128 amount,uint128 initialUnlock,bool requiresSPT)',
   ),
 );
 
 export const calculateVestingHash = (vesting: Vesting): string => {
-  const { owner, curveType, managed, durationWeeks, startDate, amount, initialUnlock } = vesting;
+  const { owner, curveType, managed, durationWeeks, startDate, amount, initialUnlock, requiresSPT } = vesting;
 
   const domainSeparator = hashKeccak256(
     defaultAbiCoder.encode(
@@ -25,7 +25,7 @@ export const calculateVestingHash = (vesting: Vesting): string => {
 
   const vestingDataHash = hashKeccak256(
     defaultAbiCoder.encode(
-      ['bytes32', 'address', 'uint8', 'bool', 'uint16', 'uint64', 'uint128', 'uint128'],
+      ['bytes32', 'address', 'uint8', 'bool', 'uint16', 'uint64', 'uint128', 'uint128', 'bool'],
       [
         VESTING_TYPEHASH,
         owner,
@@ -35,6 +35,7 @@ export const calculateVestingHash = (vesting: Vesting): string => {
         startDate,
         amount,
         initialUnlock,
+        requiresSPT,
       ],
     ),
   );

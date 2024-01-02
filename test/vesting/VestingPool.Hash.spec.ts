@@ -6,16 +6,17 @@ import { Contract } from 'ethers';
 import { Vesting } from '../../src/utils/types';
 import { calculateVestingHash } from '../../src/utils/hash';
 
+const { AddressZero } = ethers.constants;
 describe('VestingPool - Hash', async () => {
   const [poolManager, user1] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
     await pool.initialize(token.address, poolManager.address, user1.address);
     return {
       token,
@@ -33,6 +34,7 @@ describe('VestingPool - Hash', async () => {
       vesting.startDate,
       vesting.amount,
       vesting.initialUnlock,
+      vesting.requiresSPT
     );
   };
 
@@ -47,6 +49,7 @@ describe('VestingPool - Hash', async () => {
         startDate: 1700852771657,
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: ethers.utils.parseUnits('0', 18),
+        requiresSPT: false,
       };
 
       expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
@@ -62,6 +65,7 @@ describe('VestingPool - Hash', async () => {
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: 0,
+        requiresSPT: false,
       };
       expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });
@@ -76,6 +80,7 @@ describe('VestingPool - Hash', async () => {
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: 0,
+        requiresSPT: false,
       };
       expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });
@@ -90,6 +95,7 @@ describe('VestingPool - Hash', async () => {
         startDate: new Date().getTime(),
         amount: 0,
         initialUnlock: 0,
+        requiresSPT: false,
       };
       expect(await getVestingHash(vestingLibrary, vesting)).to.be.eq(calculateVestingHash(vesting));
     });

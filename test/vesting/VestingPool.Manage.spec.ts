@@ -6,16 +6,18 @@ import { BigNumber, BigNumberish, Contract } from 'ethers';
 import { setNextBlockTime } from '../utils/state';
 import { logGas } from '../utils/gas';
 
+const { AddressZero } = ethers.constants;
+
 describe('VestingPool - Manage', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
     return {
       token,
       pool,
@@ -41,8 +43,9 @@ describe('VestingPool - Manage', async () => {
       startTime,
       amount,
       0,
+      false,
     );
-    await expect(pool.addVesting(0, managed, 104, startTime, amount, 0))
+    await expect(pool.addVesting(0, managed, 104, startTime, amount, 0, false))
       .to.emit(pool, 'AddedVesting')
       .withArgs(vestingHash);
     return { vestingHash };

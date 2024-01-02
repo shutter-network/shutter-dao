@@ -2,13 +2,12 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert, expect } from 'chai';
 import { deployments, ethers } from 'hardhat';
 import { ShutterToken } from '../typechain';
-import { BigNumber, utils } from "ethers";
+import { utils } from "ethers";
 
 const mintTotal = utils.parseEther("1000000000");
 const mintDeployer = utils.parseEther("20000");
-const mintSptConversionContract = BigNumber.from("57428571428571444000000000");
 const mintAirdropContract = utils.parseEther("200000000");
-const mintOwner = mintTotal.sub(mintDeployer).sub( mintSptConversionContract).sub(mintAirdropContract);
+const mintOwner = mintTotal.sub(mintDeployer).sub(mintAirdropContract);
 
 describe('Shutter Token', async function () {
   let deployer: SignerWithAddress;
@@ -48,16 +47,14 @@ describe('Shutter Token', async function () {
         const { shutterToken } = await setupTests();
         await shutterToken
           .connect(deployer)
-          .initialize(owner.address, sptConversionContract.address, airdrop.address);
+          .initialize(owner.address, airdrop.address);
 
         const totalSupply = await shutterToken.totalSupply();
-        const sptBalance = await shutterToken.balanceOf(sptConversionContract.address);
         const airdropBalance = await shutterToken.balanceOf(airdrop.address);
         const ownerBalance = await shutterToken.balanceOf(owner.address);
         const deployerBalance = await shutterToken.balanceOf(deployer.address);
 
         expect(totalSupply).to.equal(mintTotal);
-        expect(sptBalance).to.equal(mintSptConversionContract);
         expect(airdropBalance).to.equal(mintAirdropContract);
         expect(ownerBalance).to.equal(mintOwner);
         expect(deployerBalance).to.equal(mintDeployer);
@@ -70,16 +67,16 @@ describe('Shutter Token', async function () {
       const { shutterToken } = await setupTests();
       await shutterToken
         .connect(deployer)
-        .initialize(owner.address, sptConversionContract.address, airdrop.address);
+        .initialize(owner.address, airdrop.address);
       await expect(
         shutterToken
           .connect(deployer)
-          .initialize(owner.address, sptConversionContract.address, airdrop.address),
+          .initialize(owner.address, airdrop.address),
       ).to.be.revertedWith('OwnableUnauthorizedAccount');
       await expect(
         shutterToken
           .connect(owner)
-          .initialize(owner.address, sptConversionContract.address, airdrop.address),
+          .initialize(owner.address, airdrop.address),
       ).to.be.revertedWith('AlreadyInitialized');
     });
 
@@ -92,7 +89,7 @@ describe('Shutter Token', async function () {
       const { shutterToken } = await setupTests();
       await shutterToken
         .connect(deployer)
-        .initialize(owner.address, sptConversionContract.address, airdrop.address);
+        .initialize(owner.address, airdrop.address);
       await expect(shutterToken.connect(owner).unpause()).to.emit(shutterToken, 'Unpaused');
     });
   });
@@ -103,7 +100,7 @@ describe('Shutter Token', async function () {
       const { shutterToken } = await setupTests();
       await shutterToken
         .connect(deployer)
-        .initialize(owner.address, sptConversionContract.address, airdrop.address);
+        .initialize(owner.address, airdrop.address);
 
       token = shutterToken.connect(owner);
     });

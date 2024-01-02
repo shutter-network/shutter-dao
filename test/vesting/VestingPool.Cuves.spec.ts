@@ -6,17 +6,19 @@ import { BigNumber, Contract } from 'ethers';
 import { Vesting } from '../../src/utils/types';
 import { setNextBlockTime } from '../utils/state';
 
+const { AddressZero } = ethers.constants;
+
 describe('VestingPool - Curves', async () => {
   const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
   const [poolManager, user1] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
     return {
       token,
       pool,
@@ -40,6 +42,7 @@ describe('VestingPool - Curves', async () => {
       vesting.startDate,
       vesting.amount,
       0,
+      false
     );
     await expect(
       pool.addVesting(
@@ -49,6 +52,7 @@ describe('VestingPool - Curves', async () => {
         vesting.startDate,
         vesting.amount,
         0,
+        false
       ),
     )
       .to.emit(pool, 'AddedVesting')
@@ -88,6 +92,7 @@ describe('VestingPool - Curves', async () => {
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('200000', 18),
         initialUnlock: 0,
+        requiresSPT: false,
       };
       const { vestingHash } = await addVesting(pool, vestingLibrary, token, vesting);
       if (progress > 0) {
@@ -182,6 +187,7 @@ describe('VestingPool - Curves', async () => {
         startDate: new Date().getTime(),
         amount: ethers.utils.parseUnits('660000000', 18),
         initialUnlock: 0,
+        requiresSPT: false,
       };
       const { vestingHash } = await addVesting(pool, vestingLibrary, token, vesting);
       if (progress > 0) {

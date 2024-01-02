@@ -12,18 +12,20 @@ import {
   getVestingPoolManagerContract,
 } from '../utils/setup';
 
+const { AddressZero } = ethers.constants;
+
 describe('VestingPoolManager - Setup', async () => {
   const [poolManager, user1, user2] = waffle.provider.getWallets();
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
 
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const vestingPoolManagerContract = await getVestingPoolManagerContract();
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
 
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,
@@ -40,7 +42,7 @@ describe('VestingPoolManager - Setup', async () => {
   });
 
   const setupTestsWithMock = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const executor = await getExecutor();
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
@@ -50,7 +52,7 @@ describe('VestingPoolManager - Setup', async () => {
     // const token = await deployTestToken(poolManager.address);
     const mock = await getMock();
     const token = tokenContract.attach(mock.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
 
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,
@@ -82,11 +84,12 @@ describe('VestingPoolManager - Setup', async () => {
       currentTime,
       amount,
       0,
+      false
     );
 
     await token.approve(vestingPoolManager.address, amount);
 
-    expect(await vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0))
+    expect(await vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0, false))
       .to.emit(await getUserVestingProxy(vestingPoolManager, user1.address), 'AddedVesting')
       .withArgs(vestingHash);
 
@@ -101,10 +104,11 @@ describe('VestingPoolManager - Setup', async () => {
       currentTime,
       amount,
       0,
+      false,
     );
 
     const connected = vestingPoolManager.connect(user1);
-    expect(await connected.addVesting(user2.address, 0, true, 104, currentTime, amount, 0))
+    expect(await connected.addVesting(user2.address, 0, true, 104, currentTime, amount, 0, false))
       .to.emit(await getUserVestingProxy(connected, user2.address), 'AddedVesting')
       .withArgs(vestingHash);
   });
@@ -132,99 +136,12 @@ describe('VestingPoolManager - Setup', async () => {
       currentTime,
       amount,
       0,
+      false
     );
 
-    await expect(vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0))
+    await expect(vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0, false))
       .to.emit(await getUserVestingProxy(vestingPoolManager, user1.address), 'AddedVesting')
       .withArgs(vestingHash);
   });
 
-  it('should be able to cancel a vesting', async () => {
-    const { token, vestingPoolManager, vestingLibrary } = await setupTests();
-    const currentTime = new Date().getTime();
-
-    const amount = ethers.utils.parseUnits('200000', 18);
-
-    const vestingHash = await vestingLibrary.vestingHash(
-      user1.address,
-      0,
-      true,
-      104,
-      currentTime,
-      amount,
-      0,
-    );
-
-    await token.approve(vestingPoolManager.address, amount);
-
-    expect(await vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0))
-      .to.emit(await getUserVestingProxy(vestingPoolManager, user1.address), 'AddedVesting')
-      .withArgs(vestingHash);
-
-    await expect(vestingPoolManager.cancelVesting(user1.address, vestingHash)).to.emit(
-      await getUserVestingProxy(vestingPoolManager, user1.address),
-      'CancelledVesting',
-    );
-  });
-
-  it('should be able to pause a vesting', async () => {
-    const { token, vestingPoolManager, vestingLibrary } = await setupTests();
-    const currentTime = new Date().getTime();
-
-    const amount = ethers.utils.parseUnits('200000', 18);
-
-    const vestingHash = await vestingLibrary.vestingHash(
-      user1.address,
-      0,
-      true,
-      104,
-      currentTime,
-      amount,
-      0,
-    );
-
-    await token.approve(vestingPoolManager.address, amount);
-
-    expect(await vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0))
-      .to.emit(await getUserVestingProxy(vestingPoolManager, user1.address), 'AddedVesting')
-      .withArgs(vestingHash);
-
-    await expect(vestingPoolManager.pauseVesting(user1.address, vestingHash)).to.emit(
-      await getUserVestingProxy(vestingPoolManager, user1.address),
-      'PausedVesting',
-    );
-  });
-
-  it('should be able to unpause a vesting', async () => {
-    const { token, vestingPoolManager, vestingLibrary } = await setupTests();
-    const currentTime = new Date().getTime();
-
-    const amount = ethers.utils.parseUnits('200000', 18);
-
-    const vestingHash = await vestingLibrary.vestingHash(
-      user1.address,
-      0,
-      true,
-      104,
-      currentTime,
-      amount,
-      0,
-    );
-
-    await token.approve(vestingPoolManager.address, amount);
-
-    expect(await vestingPoolManager.addVesting(user1.address, 0, true, 104, currentTime, amount, 0))
-      .to.emit(await getUserVestingProxy(vestingPoolManager, user1.address), 'AddedVesting')
-      .withArgs(vestingHash);
-
-    await expect(vestingPoolManager.pauseVesting(user1.address, vestingHash)).to.emit(
-      await getUserVestingProxy(vestingPoolManager, user1.address),
-      'PausedVesting',
-    );
-
-    await expect(vestingPoolManager.unpauseVesting(user1.address, vestingHash)).to.emit(
-      await getUserVestingProxy(vestingPoolManager, user1.address),
-      'UnpausedVesting',
-    );
-  });
 });

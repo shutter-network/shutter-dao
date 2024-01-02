@@ -10,6 +10,8 @@ import {
 } from '../utils/setup';
 import { setNextBlockTime } from '../utils/state';
 
+const { AddressZero } = ethers.constants;
+
 describe('Airdrop - Setup', async () => {
   const redeemDeadline = new Date().getTime() + 60 * 60 * 1000;
   const [airdropManager] = waffle.provider.getWallets();
@@ -19,13 +21,13 @@ describe('Airdrop - Setup', async () => {
   );
 
   const setupTests = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['VestingLibrary']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
-    const vestingPool = await poolContract.deploy();
+    const vestingPool = await poolContract.deploy(AddressZero);
     const vestingPoolManagerContract = await getVestingPoolManagerContract();
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,

@@ -3,6 +3,7 @@ import { deployments, ethers, waffle } from 'hardhat';
 import '@nomiclabs/hardhat-ethers';
 import { deployTestToken, getVestingLibraryContract, getVestingPoolContract } from '../utils/setup';
 
+const { AddressZero } = ethers.constants;
 describe('VestingPool - Setup', async () => {
   const [poolManager, user1] = waffle.provider.getWallets();
 
@@ -12,7 +13,7 @@ describe('VestingPool - Setup', async () => {
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
     const token = await deployTestToken(poolManager.address);
-    const pool = await poolContract.deploy();
+    const pool = await poolContract.deploy(AddressZero);
 
     await token.transfer(user1.address, ethers.utils.parseUnits('400000', 18));
 
@@ -30,7 +31,7 @@ describe('VestingPool - Setup', async () => {
       const currentTime = new Date().getTime();
       const userPool = pool.connect(user1);
       await expect(
-        userPool.addVesting(0, true, 104, currentTime, ethers.utils.parseUnits('200000', 18), 0),
+        userPool.addVesting(0, true, 104, currentTime, ethers.utils.parseUnits('200000', 18), 0, false),
       ).to.be.revertedWith('Can only be called by pool manager');
     });
 
@@ -39,7 +40,7 @@ describe('VestingPool - Setup', async () => {
       await pool.initialize(token.address, poolManager.address, user1.address);
       const currentTime = new Date().getTime();
       await expect(
-        pool.addVesting(0, true, 104, currentTime, ethers.utils.parseUnits('200000', 18), 0),
+        pool.addVesting(0, true, 104, currentTime, ethers.utils.parseUnits('200000', 18), 0, false),
       ).to.be.revertedWith('Not enough tokens available');
     });
 
@@ -49,7 +50,7 @@ describe('VestingPool - Setup', async () => {
       const vestingAmount = ethers.utils.parseUnits('200000', 18);
       const currentTime = (await ethers.provider.getBlock('latest')).timestamp;
       await token.transfer(pool.address, vestingAmount);
-      await expect(pool.addVesting(2, true, 104, currentTime, vestingAmount, 0)).to.be.revertedWith(
+      await expect(pool.addVesting(2, true, 104, currentTime, vestingAmount, 0, false)).to.be.revertedWith(
         'Invalid vesting curve',
       );
     });
@@ -70,8 +71,8 @@ describe('VestingPool - Setup', async () => {
       // 1h in the future
       const targetTime = currentTime + 3600;
       await token.transfer(pool.address, vestingAmount);
-      await pool.addVesting(0, true, 104, targetTime, vestingAmount, 0);
-      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0)).to.be.revertedWith(
+      await pool.addVesting(0, true, 104, targetTime, vestingAmount, 0, false);
+      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0, false)).to.be.revertedWith(
         'Vesting id already used',
       );
     });
@@ -92,8 +93,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount,
         0,
+        false
       );
-      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0))
+      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
       await expect(pool.calculateVestedAmount(vestingHash)).to.be.revertedWith(
@@ -117,8 +119,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount,
         0,
+        false 
       );
-      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0))
+      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
       const { vestedAmount } = await pool.calculateVestedAmount(vestingHash);
@@ -145,8 +148,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount,
         0,
+        false
       );
-      await expect(pool.addVesting(1, true, 104, targetTime, vestingAmount, 0))
+      await expect(pool.addVesting(1, true, 104, targetTime, vestingAmount, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
       await expect(pool.calculateVestedAmount(vestingHash)).to.be.revertedWith(
@@ -170,8 +174,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount,
         0,
+        false
       );
-      await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount, 0))
+      await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash);
       const { vestedAmount } = await pool.calculateVestedAmount(vestingHash);
@@ -202,8 +207,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount1,
         0,
+        false
       );
-      await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount1, 0))
+      await expect(pool.addVesting(1, true, 208, targetTime, vestingAmount1, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash1);
 
@@ -219,7 +225,7 @@ describe('VestingPool - Setup', async () => {
       // Try to add second vesting
       const vestingAmount2 = ethers.utils.parseUnits('200000', 18);
       await expect(
-        pool.addVesting(0, true, 104, currentTime, vestingAmount2, 0),
+        pool.addVesting(0, true, 104, currentTime, vestingAmount2, 0, false),
       ).to.be.revertedWith('Not enough tokens available');
 
       // Transfer tokens for second vesting
@@ -233,8 +239,9 @@ describe('VestingPool - Setup', async () => {
         targetTime,
         vestingAmount2,
         0,
+        false
       );
-      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount2, 0))
+      await expect(pool.addVesting(0, true, 104, targetTime, vestingAmount2, 0, false))
         .to.emit(pool, 'AddedVesting')
         .withArgs(vestingHash2);
 

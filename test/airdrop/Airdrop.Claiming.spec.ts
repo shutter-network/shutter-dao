@@ -24,13 +24,13 @@ describe('Airdrop - Claiming', async () => {
   const [airdropManager, user1, user2] = users;
 
   const setupTest = deployments.createFixture(async ({ deployments }) => {
-    await deployments.fixture(['ShutterToken', 'VestingLibrary', 'VestingPool']);
+    await deployments.fixture(['ShutterToken', 'VestingLibrary']);
     const airdropContract = await getAirdropContract();
     const token = await deployTestToken(airdropManager.address);
     const vestingLibraryContract = await getVestingLibraryContract();
     const vestingLibrary = await vestingLibraryContract.deploy();
     const poolContract = await getVestingPoolContract(vestingLibrary.address);
-    const vestingPool = await poolContract.deploy();
+    const vestingPool = await poolContract.deploy(token.address);
     const vestingPoolManagerContract = await getVestingPoolManagerContract();
     const vestingPoolManager = await vestingPoolManagerContract.deploy(
       token.address,
@@ -54,6 +54,7 @@ describe('Airdrop - Claiming', async () => {
       startDate,
       amount,
       initialUnlock: 0,
+      requiresSPT: false
     };
   };
 
@@ -116,6 +117,7 @@ describe('Airdrop - Claiming', async () => {
         vesting.amount,
         vesting.initialUnlock,
         proof,
+        false,
       );
     return { vesting, vestingHash };
   };

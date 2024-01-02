@@ -19,14 +19,19 @@ task('deploy-contracts', 'Deploys and verifies Shutter Token & DAO contracts').s
       config as unknown as HardhatConfig,
       networkName,
     );
+    const tokenAddress = getDeploymentArguments<string>(
+      'SPT_TOKEN_ADDRESS',
+      config as unknown as HardhatConfig,
+      networkName,
+    );
 
     const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
     const contractAt = await hre.ethers.provider.getCode(predictedSafeAddress);
-  
+
     if (contractAt !== '0x') {
       console.error(
         `There is already a contract deployed at the predicted safe address: ${predictedSafeAddress}`,
-        `Change the SAFE_SALT in .env file and try again.`
+        `Change the SAFE_SALT in .env file and try again.`,
       );
       return;
     }
@@ -39,7 +44,7 @@ task('deploy-contracts', 'Deploys and verifies Shutter Token & DAO contracts').s
       // etherscan-verify manages to verify all other contracts
       await hre.run('verify:verify', {
         address: vestingPoolDeployment.address,
-        constructorArguments: [],
+        constructorArguments: [tokenAddress],
       });
       await hre.run('etherscan-verify', { forceLicense: true, license: 'LGPL-3.0' });
     } catch (e) {

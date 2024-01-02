@@ -3,6 +3,7 @@ pragma solidity >=0.8.22 <0.9.0;
 
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { VestingLibrary } from "./libraries/VestingLibrary.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Vesting contract for single account
 /// Original contract - https://github.com/safe-global/safe-token/blob/main/contracts/VestingPool.sol
@@ -18,6 +19,7 @@ contract VestingPool {
     address public owner;
 
     address public token;
+    address public immutable sptToken;
     address public poolManager;
 
     uint256 public totalTokensInVesting;
@@ -37,8 +39,9 @@ contract VestingPool {
     }
 
     // solhint-disable-next-line no-empty-blocks
-    constructor() {
-        // don't do anything here to allow usage of xy contracts.
+    constructor(address _sptToken) {
+        sptToken = _sptToken;
+        // don't do anything else here to allow usage of proxy contracts.
     }
 
     /// @notice Initialize the vesting pool
@@ -84,7 +87,8 @@ contract VestingPool {
         uint16 durationWeeks,
         uint64 startDate,
         uint128 amount,
-        uint128 initialUnlock
+        uint128 initialUnlock,
+        bool requiresSPT
     ) public virtual onlyPoolManager returns (bytes32) {
         return
             _addVesting(
@@ -93,7 +97,8 @@ contract VestingPool {
                 durationWeeks,
                 startDate,
                 amount,
-                initialUnlock
+                initialUnlock,
+                requiresSPT
             );
     }
 
@@ -120,7 +125,8 @@ contract VestingPool {
         uint16 durationWeeks,
         uint64 startDate,
         uint128 amount,
-        uint128 initialUnlock
+        uint128 initialUnlock,
+        bool requiresSPT
     ) internal returns (bytes32 vestingId) {
         require(curveType < 2, "Invalid vesting curve");
         vestingId = VestingLibrary.vestingHash(
@@ -130,7 +136,8 @@ contract VestingPool {
             durationWeeks,
             startDate,
             amount,
-            initialUnlock
+            initialUnlock,
+            requiresSPT
         );
         require(vestings[vestingId].amount == 0, "Vesting id already used");
         // Check that enough tokens are available for the new vesting
@@ -147,7 +154,8 @@ contract VestingPool {
             amountClaimed: 0,
             pausingDate: 0,
             cancelled: false,
-            initialUnlock: initialUnlock
+            initialUnlock: initialUnlock,
+            requiresSPT: requiresSPT
         });
         emit AddedVesting(vestingId);
     }
@@ -164,11 +172,22 @@ contract VestingPool {
         address beneficiary,
         uint128 tokensToClaim
     ) public {
+        VestingLibrary.Vesting storage vesting = vestings[vestingId];
+        require(vesting.amount != 0, "Vesting not found");
+
         uint128 tokensClaimed = updateClaimedTokens(
             vestingId,
             beneficiary,
             tokensToClaim
         );
+
+        if(vesting.requiresSPT) {
+           require(
+                IERC20(sptToken).transferFrom(msg.sender, address(this), tokensClaimed),
+                "SPT transfer failed"
+            );
+        }
+
         require(
             ERC20Votes(token).transfer(beneficiary, tokensClaimed),
             "Token transfer failed"
