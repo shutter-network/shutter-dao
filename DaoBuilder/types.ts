@@ -21,6 +21,13 @@ export interface SafeSignature {
   data: string;
 }
 
+export interface KeyperSet {
+  keypers: string[];
+  collator: string;
+  thresholdRatio: number;
+  activationBlock: number;
+}
+
 export interface ShutterDAOConfig {
   name: string;
   snapshotURL: string;
@@ -30,4 +37,5 @@ export interface ShutterDAOConfig {
   quorumBasisNumerator: number;
   votingBasisNumerator: number;
   proposalRequiredWeightTokens: number;
+  initialKeyperSet: KeyperSet;
 }
