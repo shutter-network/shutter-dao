@@ -27,7 +27,8 @@ MAINNET_DEPLOYER_PRIVATE_KEY=
 MAINNET_SAFE_SALT=
 ```
 
-Make sure to have the account funded with at least XXX ETH. Note that the total costs to deploy a DAO depend on the actual gas price.
+Deploying all contracts requires around 15.2M gas. At a gas price of 30 Gwei, this would cost around 0.5 ETH.  
+Make sure to have the account funded with *at least* that amount of ETH. Note that the total costs to deploy a DAO depends on the current gas price.
 
 ## 2) Modify DAO parameters
 
