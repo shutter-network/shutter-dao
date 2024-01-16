@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { getPredictedSafeAddress } from '../../DaoBuilder/daoUtils';
 import { ShutterToken } from '../../typechain';
 import { getDeploymentArguments } from '../utils/deploy';
+import { shutterDAOConfig } from '../../config/shutterDAOConfig';
 
 const deployContracts = async function ({ deployments, config, network }) {
   const [deployer] = await ethers.getSigners();
@@ -20,7 +21,7 @@ const deployContracts = async function ({ deployments, config, network }) {
 
   const predictedSafeAddress = await getPredictedSafeAddress(safeSalt);
   await (
-    await shutterToken.connect(deployer).initialize(predictedSafeAddress, airdrop.address)
+    await shutterToken.connect(deployer).initialize(predictedSafeAddress, airdrop.address, shutterDAOConfig.airdropConfig.tokenBalance)
   ).wait();
 
   console.log('Shutter token initialized');

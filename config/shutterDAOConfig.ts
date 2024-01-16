@@ -1,4 +1,5 @@
 import { ShutterDAOConfig } from '../DaoBuilder/types';
+import { BigNumber } from "ethers";
 
 // @note 1 block = ~15 seconds
 // @note 1 day = 5760 blocks
@@ -25,10 +26,15 @@ export const shutterDAOConfig: ShutterDAOConfig = {
   // Linear Strategy | Percentage of total possible tokens that must be delegated to a user in order for them to create a proposal.  Suggested 1%.
   proposalRequiredWeightTokens: 0,  // (delegated voting token balance)
 
-  // Root hash of the airdrop merkle tree.
-  airdropRootHash: '0x07ad1b3aa5ce0e596eeef606c53ba868ba435b052a6b11e7aa7a55a5b6f6b02a',
-  // Deadline for the airdrop redemption.  This is the timestamp after which the airdrop will be closed.
-  airdropRedeemDeadline: 1721000000, // (seconds; 1721000000 ~= 2024-07-15T01:33:20)
+  // Airdrop | Configuration for the airdrop contract.
+  airdropConfig: {
+    // Total sum of the airdrop allocations as defined in the allocations referenced by the root hash.
+    tokenBalance: BigNumber.from('405642857142857047400000000'), // (wei)
+    // Root hash of the airdrop merkle tree.
+    rootHash: '0x07ad1b3aa5ce0e596eeef606c53ba868ba435b052a6b11e7aa7a55a5b6f6b02a',
+    // Deadline for the airdrop redemption.  This is the timestamp after which the airdrop will be closed.
+    redeemDeadline: 1721000000, // (seconds; 1721000000 ~= 2024-07-14T23:33:20 UTC)
+  },
 
   // The initial keyper set that is associated with the DAO. Taken from the Shutter keyper set 1 as deployed on Gnosis chain at `0x5162f51ef5cb9d12f5f64e17fc910d17af37f833`
   initialKeyperSet: {
