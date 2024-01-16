@@ -1,6 +1,6 @@
 # Shutter DAO blueprint
 
-This is the official blueprint for the Shutter DAO. Below, you will find the instructions to deploy the Shutter DAO and how to modify the configuration parameters.
+This is the official blueprint for a Shutter DAO. Below, you will find the instructions to deploy a Shutter DAO and how to modify the configuration parameters.
 
 This repo comes with a suggested default configuration. If you intend to deploy with the proposed configuration, you can skip the step `2) Modify DAO Parameters`.
 
@@ -27,11 +27,11 @@ MAINNET_DEPLOYER_PRIVATE_KEY=
 MAINNET_SAFE_SALT=
 ```
 
-Make sure to have the account funded with at least XXX ETH. Note that the total costs to deploy the DAO depend on the actual gas price.
+Make sure to have the account funded with at least XXX ETH. Note that the total costs to deploy a DAO depend on the actual gas price.
 
 ## 2) Modify DAO parameters
 
-If you want to alter the DAO parameter settings, you can make the following changes:
+If you want to alter DAO parameter settings, you can make the following changes:
 
 ### 2.1) Changing token allocations and vesting schedules
 You need to generate a new Merkle root hash to change token allocation and vesting schedules.
@@ -39,8 +39,8 @@ Please visit https://github.com/shutter-network/shutter-dao-claiming-app-data an
 Modify the CSV files to your needs and execute the Merkle root hash generation. Replace the parameter
 `rootHash` and `tokenBalance` under `airdropConfig` in `config/shutterDaoConfig.ts` with the generated values.
 
-### 2.2) DAO gonvernance parameters
-Inside the `config/shutterDAOConfig.ts`, you could change the DAO parameters as you wish.
+### 2.2) DAO governance parameters
+Inside the `config/shutterDAOConfig.ts`, you could change a DAO parameters as you wish.
 Please remember that the values `airdrop.rootHash` and `airdrop.tokenBalance` should be taken from the generated output
 file as described above.
 
