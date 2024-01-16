@@ -37,19 +37,14 @@ task('deploy-contracts', 'Deploys and verifies Shutter Token & DAO contracts').s
     }
 
     await hre.run('deploy');
-    const vestingPoolDeployment = await deployments.get('VestingPool');
 
-    try {
-      // use hardhat verify only for the vesting pool
-      // etherscan-verify manages to verify all other contracts
-      await hre.run('verify:verify', {
-        address: vestingPoolDeployment.address,
-        constructorArguments: [tokenAddress],
-      });
-      await hre.run('etherscan-verify', { forceLicense: true, license: 'LGPL-3.0' });
-    } catch (e) {
-      console.error(e);
-    }
+    console.table([
+      "",
+      "🚀 Shutter DAO contracts successfully deployed 🚀",
+      "",
+    ]);
+
+    await hre.run('verify-contracts');
 
     logEthereumLogo();
   },
