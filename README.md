@@ -144,17 +144,16 @@ After successfully deploying a shutter DAO, you can propose the deployment to th
 
 Please upload the generated files in a PR.
 
-You can do this by executing the following commands (outside of this repository):
+You can do this by forking the above repo and then executing the following commands (outside of this repository):
 
 ```
-git clone git@github.com:shutter-network/shutter-dao-deployment-artifacts.git
+git clone git@github.com:<<YOUR_FORK_OF_SHUTTER_DAO_DEPLOYMENT_ARTIFACTS>>.git
 cd shutter-dao-deployment-artifacts
-git checkout -b <<YOUR_BRANCH_NAME>> 
 cp -a <<PATH_TO_SHUTTER_DAO_REPOSITORY>>/deployments .
 git add deployments
 git commit -m "Shutter DAO deployment by <<YOUR_NAME>>"
-git push -u origin <<YOUR_BRANCH_NAME>>
+git push -u origin main
 ```
 
-This will create a new branch in the `shutter-dao-deployment-artifacts` repository and push the deployment artifacts to it.
+This will create a new commit in your fork of the `shutter-dao-deployment-artifacts` repository and push the deployment artifacts to it.
 Please open a PR with this branch against the `main` branch of the `shutter-dao-deployment-artifacts` repository.
