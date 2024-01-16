@@ -137,7 +137,7 @@ means that the contract was already verified.)
 After successfully executing the deployment command, the deployment artifacts will be stored in `deployments/mainnet/`
 in the project's root directory. You will need these files in the next step.
 
-### 3.3) Proposing the deployment
+## 4) Proposing the deployment
 After successfully deploying a shutter DAO, you can propose the deployment to the community by creating a PR in 
 [shutter-dao-deployment-artifacts](https://github.com/shutter-network/shutter-dao-deployment-artifacts).
 
