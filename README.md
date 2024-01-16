@@ -58,6 +58,7 @@ Inside the `config` directory:
 
 ## 3) Deploy DAO
 
+execute 
 
 ### Set up environment
 
@@ -73,11 +74,10 @@ npm install
 
 ### Run deployment command
 
+After configuring all necessary files, as in the steps above, execute the following commands in the root directory.
 ``` 
-
-
+npx hardhat --network mainnet deploy-contracts
 ```
-
 
 
 # Test
