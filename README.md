@@ -2,7 +2,7 @@
 
 This is the official blueprint for the Shutter DAO. Below, you will find the instructions to deploy the Shutter DAO and how to modify the configuration parameters.
 
-This repo comes with a default suggestion. If you intend to deploy with the proposed configuration, you can skip the step `Modify DAO Parameters`.
+This repo comes with a suggested default configuration. If you intend to deploy with the proposed configuration, you can skip the step `2) Modify DAO Parameters`.
 
 ## 1) Configuration
 Create a `.env` file in the root depository of the project.
@@ -33,13 +33,13 @@ Make sure to have the account funded with at least XXX ETH. Note that the total 
 
 If you want to alter the DAO parameter settings, you can make the following changes:
 
-### Changing token allocations and vesting schedules
+### 2.1) Changing token allocations and vesting schedules
 You need to generate a new Merkle root hash to change token allocation and vesting schedules.
 Please visit https://github.com/shutter-network/shutter-dao-claiming-app-data and follow the README.
 Modify the CSV files to your needs and execute the Merkle root hash generation. Replace the parameter
 `rootHash` and `tokenBalance` under `airdropConfig` in `config/shutterDaoConfig.ts` with the generated values.
 
-### DAO gonvernance parameters
+### 2.2) DAO gonvernance parameters
 Inside the `config/shutterDAOConfig.ts`, you could change the DAO parameters as you wish.
 Please remember that the values `airdrop.rootHash` and `airdrop.tokenBalance` should be taken from the generated output
 file as described above.
@@ -99,7 +99,7 @@ file as described above.
 
 ## 3) Deploy DAO
 
-### Set up environment
+### 3.1) Set up environment
 
 Requirements: 
 
@@ -111,31 +111,49 @@ In the root directory, execute
 npm install
 ```
 
-### Run deployment command
+### 3.2) Run deployment command
 
 After configuring all necessary files, as in the steps above, execute the following commands in the root directory.
 ``` 
 npx hardhat --network mainnet deploy-contracts
 ```
 
+A message `🚀 Shutter DAO contracts successfully deployed 🚀` will be displayed once the contracts are successfully and completely deployed.
+
+
+#### Ensure that the contracts are verified on Etherscan
+
+The `deploy-contracts` task will also automatically attempt to verify the contracts on Etherscan.
+This can sometimes fail due to rate limiting. If this should happen just run the following command again to complete the verification:
+
+```shell
+npx hardhat --network mainnet verify-contracts
+```
+
+(Note that a message like: `Failed to verify contract Collator: NOTOK, Already Verified` is not an error, but just 
+means that the contract was already verified.)
+
+
 After successfully executing the deployment command, the deployment artifacts will be stored in `deployments/mainnet/`
 in the project's root directory. You will need these files in the next step.
 
-### Proposing the deployment
+## 4) Proposing the deployment
 After successfully deploying a shutter DAO, you can propose the deployment to the community by creating a PR in 
 [shutter-dao-deployment-artifacts](https://github.com/shutter-network/shutter-dao-deployment-artifacts).
 
-Please upload the generated files in your PR.
+Please upload the generated files in a PR.
 
-You can do this by executing the following commands
+You can do this by executing the following commands (outside of this repository):
 
 ```
 git clone git@github.com:shutter-network/shutter-dao-deployment-artifacts.git
 cd shutter-dao-deployment-artifacts
+git checkout -b <<YOUR_BRANCH_NAME>> 
 cp -a <<PATH_TO_SHUTTER_DAO_REPOSITORY>>/deployments .
+git add deployments
+git commit -m "Shutter DAO deployment by <<YOUR_NAME>>"
+git push -u origin <<YOUR_BRANCH_NAME>>
 ```
 
-# Test
-```
-npm run test
-```
+This will create a new branch in the `shutter-dao-deployment-artifacts` repository and push the deployment artifacts to it.
+Please open a PR with this branch against the `main` branch of the `shutter-dao-deployment-artifacts` repository.
