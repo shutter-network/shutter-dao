@@ -10,8 +10,8 @@ const NOW = Math.floor(Date.now() / 1000);
 export const shutterDAOConfig: ShutterDAOConfig = {
   // name of the DAO
   name: 'Shutter DAO',
-  // Snapshot | url of the snapshot page
-  snapshotURL: 'https://snapshot.org/#/shutterprotodao.eth',
+  // Snapshot | url of the snapshot page if one exists
+  snapshotURL: '',
   // Linear Strategy |  Length of time that voting occurs
   votingPeriodBlocks: 5, // (blocks)
   // Linear Strategy | Length of time between when a proposal is passed and when it can be actually be executed.  For the top level Decent DAO we may want to have this be 0
