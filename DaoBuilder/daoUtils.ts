@@ -20,7 +20,6 @@ import {
 } from '@safe-global/safe-deployments';
 
 import { getHRE } from './hre';
-import { get } from 'http';
 
 export const SAFE_VERSION = '1.3.0';
 
