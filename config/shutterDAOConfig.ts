@@ -17,13 +17,13 @@ export const shutterDAOConfig: ShutterDAOConfig = {
   // Linear Strategy | Length of time between when a proposal is passed and when it can be actually be executed.  For the top level Decent DAO we may want to have this be 0
   timeLockPeriodBlocks: 0, // (blocks)
   // Linear Strategy | Length of time that a successful proposal has to be executed, after which is will expire.  We can simply set this to the the same length decided on for Voting Period.
-  executionPeriodBlocks: 0, // (blocks)
+  executionPeriodBlocks: 21600, // (blocks)
   // Linear Strategy | Percentage of total possible tokens that must vote in order to consider a proposal result valid.  We should take into account that a large portion of tokens will be locked for investors, who may never vote.
   quorumBasisNumerator: 30000, // (basis points, will be divided by 1_000_000)
   // Linear Strategy | Percentage of total possible tokens that must vote YES in order to pass a proposal.  Suggested 50% for a simple majority.
   votingBasisNumerator: 500000, // (basis points, will be divided by 1_000_000)
-  // Linear Strategy | Percentage of total possible tokens that must be delegated to a user in order for them to create a proposal.  Suggested 1%.
-  proposalRequiredWeightTokens: 0,  // (delegated voting token balance)
+  // Linear Strategy | Minimum number of tokens that must be delegated to a user in order for him to create a proposal.  Suggested 1e18.
+  proposalRequiredWeightTokens: 1000000000000000000,  // (delegated voting token balance)
 
   // Root hash of the airdrop merkle tree.
   airdropRootHash: '0x07ad1b3aa5ce0e596eeef606c53ba868ba435b052a6b11e7aa7a55a5b6f6b02a',
