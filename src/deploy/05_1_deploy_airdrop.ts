@@ -25,9 +25,9 @@ const deployContracts = async function ({ deployments, config, network }) {
     args: [
       shutterToken.address,
       predictedSafeAddress,
-      shutterDAOConfig.airdropRedeemDeadline,
+      shutterDAOConfig.airdropConfig.redeemDeadline,
       vestingPoolManager.address,
-      shutterDAOConfig.airdropRootHash,
+      shutterDAOConfig.airdropConfig.rootHash,
     ],
     log: true,
   });

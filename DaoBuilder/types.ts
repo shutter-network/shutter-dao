@@ -28,6 +28,12 @@ export interface KeyperSet {
   activationBlock: number;
 }
 
+export interface AirdropConfig {
+  tokenBalance: number | BigNumber;
+  rootHash: string;
+  redeemDeadline: number;
+}
+
 export interface ShutterDAOConfig {
   name: string;
   snapshotURL: string;
@@ -37,7 +43,8 @@ export interface ShutterDAOConfig {
   quorumBasisNumerator: number;
   votingBasisNumerator: number;
   proposalRequiredWeightTokens: number;
-  airdropRootHash: string;
-  airdropRedeemDeadline: number;
+
+  airdropConfig: AirdropConfig;
+
   initialKeyperSet: KeyperSet;
 }
