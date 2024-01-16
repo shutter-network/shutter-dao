@@ -118,6 +118,22 @@ After configuring all necessary files, as in the steps above, execute the follow
 npx hardhat --network mainnet deploy-contracts
 ```
 
+After successfully executing the deployment command, the deployment artifacts will be stored in `deployments/mainnet/`
+in the project's root directory. You will need these files in the next step.
+
+### Proposing the deployment
+After successfully deploying a shutter DAO, you can propose the deployment to the community by creating a PR in 
+[shutter-dao-deployment-artifacts](https://github.com/shutter-network/shutter-dao-deployment-artifacts).
+
+Please upload the generated files in your PR.
+
+You can do this by executing the following commands
+
+```
+git clone git@github.com:shutter-network/shutter-dao-deployment-artifacts.git
+cd shutter-dao-deployment-artifacts
+cp -a <<PATH_TO_SHUTTER_DAO_REPOSITORY>>/deployments .
+```
 
 # Test
 ```
