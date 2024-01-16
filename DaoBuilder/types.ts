@@ -37,5 +37,7 @@ export interface ShutterDAOConfig {
   quorumBasisNumerator: number;
   votingBasisNumerator: number;
   proposalRequiredWeightTokens: number;
+  airdropRootHash: string;
+  airdropRedeemDeadline: number;
   initialKeyperSet: KeyperSet;
 }

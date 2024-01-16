@@ -25,6 +25,11 @@ export const shutterDAOConfig: ShutterDAOConfig = {
   // Linear Strategy | Percentage of total possible tokens that must be delegated to a user in order for them to create a proposal.  Suggested 1%.
   proposalRequiredWeightTokens: 0,  // (delegated voting token balance)
 
+  // Root hash of the airdrop merkle tree.
+  airdropRootHash: '0x894a6be3e9d410ce579cd766a9fead57e547f88162981c068fdb4e8482d0428a',
+  // Deadline for the airdrop redemption.  This is the timestamp after which the airdrop will be closed.
+  airdropRedeemDeadline: 1721000000, // (seconds; 1721000000 ~= 2024-07-15T01:33:20)
+
   // The initial keyper set that is associated with the DAO. Taken from the Shutter keyper set 1 as deployed on Gnosis chain at `0x5162f51ef5cb9d12f5f64e17fc910d17af37f833`
   initialKeyperSet: {
     keypers: [

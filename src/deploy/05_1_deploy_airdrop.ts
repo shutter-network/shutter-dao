@@ -4,6 +4,7 @@ import { ethers } from 'hardhat';
 import { getPredictedSafeAddress } from '../../DaoBuilder/daoUtils';
 import { BigNumber } from 'ethers';
 import { getDeploymentArguments } from '../utils/deploy';
+import { shutterDAOConfig } from '../../config/shutterDAOConfig';
 
 const deployContracts = async function ({ deployments, config, network }) {
   const { deploy } = deployments;
@@ -19,17 +20,14 @@ const deployContracts = async function ({ deployments, config, network }) {
 
   console.warn('predictedSafeAddress', predictedSafeAddress);
 
-  const rootHash = getDeploymentArguments('AIRDROP_ROOT_HASH', config, networkName);
-  const deadline = getDeploymentArguments('AIRDROP_REDEEM_DEADLINE', config, networkName);
-
   const airdropDeployment = await deploy('Airdrop', {
     from: await deployer.getAddress(),
     args: [
       shutterToken.address,
       predictedSafeAddress,
-      deadline,
+      shutterDAOConfig.airdropRedeemDeadline,
       vestingPoolManager.address,
-      rootHash,
+      shutterDAOConfig.airdropRootHash,
     ],
     log: true,
   });
