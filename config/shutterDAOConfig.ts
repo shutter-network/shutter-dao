@@ -26,7 +26,7 @@ export const shutterDAOConfig: ShutterDAOConfig = {
   proposalRequiredWeightTokens: 0,  // (delegated voting token balance)
 
   // Root hash of the airdrop merkle tree.
-  airdropRootHash: '0x894a6be3e9d410ce579cd766a9fead57e547f88162981c068fdb4e8482d0428a',
+  airdropRootHash: '0x07ad1b3aa5ce0e596eeef606c53ba868ba435b052a6b11e7aa7a55a5b6f6b02a',
   // Deadline for the airdrop redemption.  This is the timestamp after which the airdrop will be closed.
   airdropRedeemDeadline: 1721000000, // (seconds; 1721000000 ~= 2024-07-15T01:33:20)
 
