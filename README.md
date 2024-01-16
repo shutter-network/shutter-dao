@@ -22,6 +22,9 @@ ETHERSCAN_API_KEY=
 MAINNET_PROVIDER=
 # Private key used to deploy and configure the contracts
 MAINNET_DEPLOYER_PRIVATE_KEY=
+# Choose a random value to determine the DAO's safe address
+# it is recommended to use "openssl rand -hex 32 | tr -dc '[0-9]'"
+MAINNET_SAFE_SALT=
 ```
 
 Make sure to have the account funded with at least XXX ETH. Note that the total costs to deploy the DAO depend on the actual gas price.
