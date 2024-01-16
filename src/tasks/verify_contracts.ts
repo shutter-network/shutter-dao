@@ -1,11 +1,10 @@
 import 'hardhat-deploy';
-import {task} from "hardhat/config";
-import {getDeploymentArguments} from "../utils/deploy";
+import { task } from 'hardhat/config';
+import { getDeploymentArguments } from '../utils/deploy';
 import { type HardhatConfig } from '../../types/hardhat';
 
 task('verify-contracts', 'Verifies the already deployed Shutter Token & DAO contracts').setAction(
   async (_, hre) => {
-
     const { deployments, config, network } = hre;
 
     const vestingPoolDeployment = await deployments.get('VestingPool');
@@ -23,9 +22,11 @@ task('verify-contracts', 'Verifies the already deployed Shutter Token & DAO cont
         address: vestingPoolDeployment.address,
         constructorArguments: [tokenAddress],
       });
-      await hre.run('etherscan-verify', {forceLicense: true, license: 'LGPL-3.0'});
+      await hre.run('etherscan-verify', { forceLicense: true, license: 'LGPL-3.0' });
     } catch (e) {
       console.error(e);
     }
   },
 );
+
+export {};

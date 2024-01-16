@@ -11,6 +11,7 @@ import 'solidity-coverage';
 import './src/tasks/airdrop';
 import './src/tasks/randombytes';
 import './src/tasks/deploy_contracts';
+import './src/tasks/verify_contracts';
 
 import {type HardhatConfig} from './types/hardhat';
 

@@ -24,7 +24,7 @@ export const shutterDAOConfig: ShutterDAOConfig = {
   // Linear Strategy | Percentage of total possible tokens that must vote YES in order to pass a proposal.  Suggested 50% for a simple majority.
   votingBasisNumerator: 500000, // (basis points, will be divided by 1_000_000)
   // Linear Strategy | Minimum number of tokens that must be delegated to a user in order for him to create a proposal.  Suggested 1e18.
-  proposalRequiredWeightTokens: 1000000000000000000,  // (delegated voting token balance)
+  proposalRequiredWeightTokens: BigNumber.from('1000000000000000000'),  // (delegated voting token balance)
 
   // Airdrop | Configuration for the airdrop contract.
   airdropConfig: {
