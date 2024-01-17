@@ -1,8 +1,8 @@
-# Shutter DAO blueprint
+# Shutter DAO Blueprint
 
-This is the official blueprint for a Shutter DAO. Below, you will find the instructions to deploy a Shutter DAO and how to modify the configuration parameters.
+This is a blueprint for a Shutter DAO. Below, you will find the instructions for deploying a Shutter DAO and modifying the configuration parameters.
 
-This repo comes with a suggested default configuration. If you intend to deploy with the proposed configuration, you can skip the step `2) Modify DAO Parameters`.
+This repo comes with a suggested default configuration. If you intend to deploy with the proposed configuration, skip the step `2) Modify DAO Parameters`.
 
 ## 1) Configuration
 Create a `.env` file in the root depository of the project.
@@ -22,7 +22,7 @@ ETHERSCAN_API_KEY=
 MAINNET_PROVIDER=
 # Private key used to deploy and configure the contracts
 MAINNET_DEPLOYER_PRIVATE_KEY=
-# Choose a random value to determine the DAO's safe address
+# Choose a random value to determine the DAO's Safe address
 # it is recommended to use "openssl rand -hex 32 | tr -dc '[0-9]'"
 MAINNET_SAFE_SALT=
 ```
@@ -35,42 +35,41 @@ Make sure to have the account funded with *at least* that amount of ETH. Note th
 If you want to alter DAO parameter settings, you can make the following changes:
 
 ### 2.1) Changing token allocations and vesting schedules
-You need to generate a new Merkle root hash to change token allocation and vesting schedules.
+You must generate a new Merkle root hash to change token allocation and vesting schedules.
 Please visit https://github.com/shutter-network/shutter-dao-claiming-app-data and follow the README.
 Modify the CSV files to your needs and execute the Merkle root hash generation. Replace the parameter
 `rootHash` and `tokenBalance` under `airdropConfig` in `config/shutterDaoConfig.ts` with the generated values.
 
 ### 2.2) DAO governance parameters
-Inside the `config/shutterDAOConfig.ts`, you could change a DAO parameters as you wish.
-Please remember that the values `airdrop.rootHash` and `airdrop.tokenBalance` should be taken from the generated output
-file as described above.
+Inside the `config/shutterDAOConfig.ts,` you can change the DAO parameters.
+Please remember that the values `airdrop.rootHash` and `airdrop.tokenBalance` should be taken from the generated output file described above.
 
 ```
 {
   // name of the DAO
   name: 'Shutter DAO',
-  // Snapshot | url of the snapshot page if one exists
+  // Snapshot | URL of the Snapshot page, if one exists
   snapshotURL: '',
   // Linear Strategy |  Length of time that voting occurs
   votingPeriodBlocks: 5, // (blocks)
-  // Linear Strategy | Length of time between when a proposal is passed and when it can be actually be executed.  For the top level Decent DAO we may want to have this be 0
+  // Linear Strategy | Length of time between when a proposal is passed and when it can be executed. 
   timeLockPeriodBlocks: 0, // (blocks)
-  // Linear Strategy | Length of time that a successful proposal has to be executed, after which is will expire.  We can simply set this to the the same length decided on for Voting Period.
+  // Linear Strategy | Length of time that a successful proposal has to be executed, after which it will expire. We can simply set this to the same length decided on for the Voting Period.
   executionPeriodBlocks: 86400, // (blocks)
-  // Linear Strategy | Percentage of total possible tokens that must vote in order to consider a proposal result valid.  We should take into account that a large portion of tokens will be locked for investors, who may never vote.
+  // Linear Strategy | Percentage of total possible tokens that must participate in a vote to consider a proposal result valid. We should consider that many tokens will be locked for some, who may never vote.
   quorumBasisNumerator: 4, // (basis points, will be divided by 1_000_000)
-  // Linear Strategy | Percentage of total possible tokens that must vote YES in order to pass a proposal.  Suggested 50% for a simple majority.
+  // Linear Strategy | Percentage of total possible tokens that must vote YES to pass a proposal. Suggested 50% for a simple majority.
   votingBasisNumerator: 500000, // (basis points, will be divided by 1_000_000)
-  // Linear Strategy | Percentage of total possible tokens that must be delegated to a user in order for them to create a proposal.  Suggested 1%.
+  // Linear Strategy | Percentage of total possible tokens that must be delegated to a user for them to create a proposal. A suggested value is 1%.
   proposalRequiredWeightTokens: 0,  // (delegated voting token balance)
 
   // Airdrop | Configuration for the airdrop contract.
   airdropConfig: {
     // Total sum of the airdrop allocations as defined in the allocations referenced by the root hash.
     tokenBalance: BigNumber.from('405642857142857047400000000'), // (wei)
-    // Root hash of the airdrop merkle tree.
+    // Root hash of the airdrop Merkle tree.
     rootHash: '0x07ad1b3aa5ce0e596eeef606c53ba868ba435b052a6b11e7aa7a55a5b6f6b02a',
-    // Deadline for the airdrop redemption.  This is the timestamp after which the airdrop will be closed.
+    // Deadline for the airdrop redemption. This is the timestamp after which the airdrop will be closed.
     redeemDeadline: 1721000000, // (seconds; 1721000000 ~= 2024-07-14T23:33:20 UTC)
   },
 
@@ -100,7 +99,7 @@ file as described above.
 
 ## 3) Deploy DAO
 
-### 3.1) Set up environment
+### 3.1) Set up the environment
 
 Requirements: 
 
@@ -125,14 +124,13 @@ A message `🚀 Shutter DAO contracts successfully deployed 🚀` will be displa
 #### Ensure that the contracts are verified on Etherscan
 
 The `deploy-contracts` task will also automatically attempt to verify the contracts on Etherscan.
-This can sometimes fail due to rate limiting. If this should happen just run the following command again to complete the verification:
+This can sometimes fail due to rate limiting. If this should happen, just run the following command again to complete the verification:
 
 ```shell
 npx hardhat --network mainnet verify-contracts
 ```
 
-(Note that a message like: `Failed to verify contract Collator: NOTOK, Already Verified` is not an error, but just 
-means that the contract was already verified.)
+(Note that a message like: `Failed to verify contract Collator: NOTOK, Already Verified` is not an error but means that the contract was already verified.)
 
 
 After successfully executing the deployment command, the deployment artifacts will be stored in `deployments/mainnet/`
